@@ -1,6 +1,3 @@
--- Ejecuta este archivo en Supabase > SQL Editor > New query
--- Crea las tablas, activa RLS y añade políticas para que cada usuario solo vea sus datos.
-
 create extension if not exists pgcrypto;
 
 create table if not exists profiles (
