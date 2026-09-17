@@ -3,7 +3,7 @@
   "short_name": "GymTracker",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#09090b",
   "theme_color": "#111827",
   "description": "App para registrar marcas del gimnasio",
   "icons": []

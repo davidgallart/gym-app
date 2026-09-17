@@ -11,9 +11,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.49.4
         version: 2.106.1
-      '@vitejs/plugin-react':
-        specifier: ^4.3.4
-        version: 4.7.0(vite@6.4.2)
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@18.3.1)
@@ -26,6 +23,10 @@ importers:
       recharts:
         specifier: ^2.15.0
         version: 2.15.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@vitejs/plugin-react':
+        specifier: ^4.3.4
+        version: 4.7.0(vite@6.4.2)
       vite:
         specifier: ^6.2.0
         version: 6.4.2

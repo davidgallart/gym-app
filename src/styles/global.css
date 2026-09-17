@@ -371,7 +371,8 @@ select:focus {
 
 .sets-grid {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .set-card {
@@ -599,10 +600,6 @@ select:focus {
     align-items: end;
   }
 
-  .sets-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .actions-row {
     grid-template-columns: 1fr 1fr;
   }
@@ -659,11 +656,6 @@ select:focus {
 }
 
 /* Ajustes añadidos: registro de un ejercicio por guardado y dos series por fila en móvil */
-.sets-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
 .set-card {
   min-width: 0;
 }
@@ -695,12 +687,6 @@ select:focus {
 
   .set-card-header strong {
     font-size: 14px;
-  }
-}
-
-@media (min-width: 900px) {
-  .sets-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -751,10 +737,6 @@ select:focus {
 }
 
 /* Ajustes finales: mobile-first, peso corporal y menú limpio */
-.sets-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .bodyweight-form {
   align-items: end;
 }
