@@ -943,3 +943,122 @@ select:focus {
 .form-actions .save-button-full {
   width: 100%;
 }
+
+.rest-toggle-button {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--panel-strong);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rest-toggle-on {
+  color: #bbf7d0;
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.14);
+}
+
+/* Barra del temporizador de descanso */
+.rest-timer-bar {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #0c0c0f;
+  border: 1px solid var(--border-soft);
+}
+
+.rest-timer-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rest-timer-label {
+  font-family: inherit;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rest-timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rest-step-button {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-strong);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rest-step-button:active {
+  transform: scale(0.96);
+}
+
+.rest-timer-value {
+  min-width: 48px;
+  text-align: center;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.rest-timer-counting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rest-countdown {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.rest-countdown-number {
+  font-family: inherit;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: white;
+}
+
+.rest-countdown-unit {
+  font-family: inherit;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.rest-cancel-button {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  border-radius: 12px;
+  background: var(--red-soft);
+  color: #fecaca;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,11 +1,40 @@
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
 import { getExercisePerformanceSummary } from "../services/exerciseService";
+import { playRestEndBell } from "../lib/restTimerSound";
+import { MAX_PUSH_DELAY_SECONDS, cancelRestEnd, initPush, isPushAvailable, scheduleRestEnd } from "../lib/restNotifications";
 import { useToast } from "./ToastProvider";
 
 const NO_GROUP_VALUE = "__NO_GROUP__";
 const NO_GROUP_LABEL = "Sin grupo muscular";
+
+const REST_ENABLED_KEY = "gym-rest-enabled";
+const REST_DURATIONS_KEY = "gym-rest-durations";
+const REST_DEFAULT_SECONDS = 90;
+const REST_LARGE_GROUP_SECONDS = 120;
+const REST_MIN_SECONDS = 15;
+const REST_MAX_SECONDS = 300;
+const REST_STEP_SECONDS = 15;
+const LARGE_GROUP_KEYWORDS = ["pecho", "espalda", "pierna"];
+
+function getDefaultRestSeconds(muscleGroup) {
+  const group = (muscleGroup || "").toLowerCase();
+  return LARGE_GROUP_KEYWORDS.some((keyword) => group.includes(keyword))
+    ? REST_LARGE_GROUP_SECONDS
+    : REST_DEFAULT_SECONDS;
+}
+
+function loadRestDurations() {
+  try {
+    const raw = localStorage.getItem(REST_DURATIONS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
 
 function getGroupValue(exercise) {
   return exercise.muscle_group?.trim() || NO_GROUP_VALUE;
@@ -21,6 +50,20 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
   const [bestPerformance, setBestPerformance] = useState(null);
   const [loadingLastPerformance, setLoadingLastPerformance] = useState(false);
   const { showToast } = useToast();
+
+  const [restEnabled, setRestEnabled] = useState(() => {
+    try {
+      const stored = localStorage.getItem(REST_ENABLED_KEY);
+      return stored === null ? true : stored !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const [restDuration, setRestDuration] = useState(REST_DEFAULT_SECONDS);
+  const [restRemaining, setRestRemaining] = useState(null);
+  const restTimerRef = useRef(null);
+  const restEndAtRef = useRef(null);
+  const restJobIdRef = useRef(null);
 
   const muscleGroups = useMemo(() => {
     return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
@@ -67,6 +110,117 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
       .finally(() => setLoadingLastPerformance(false));
   }, [item.exerciseId, showToast]);
 
+  useEffect(() => {
+    cancelRestTimer();
+
+    if (!item.exerciseId) {
+      setRestDuration(REST_DEFAULT_SECONDS);
+      return;
+    }
+
+    const durations = loadRestDurations();
+    const stored = Number(durations[item.exerciseId]);
+    if (stored) {
+      setRestDuration(stored);
+      return;
+    }
+
+    const selectedExercise = exercises.find((exercise) => exercise.id === item.exerciseId);
+    setRestDuration(getDefaultRestSeconds(selectedExercise?.muscle_group ?? ""));
+  }, [item.exerciseId, exercises]);
+
+  useEffect(() => {
+    return () => {
+      if (restTimerRef.current) clearInterval(restTimerRef.current);
+      cancelRestEnd(restJobIdRef.current);
+    };
+  }, []);
+
+  function startRestTimer() {
+    if (!restEnabled) return;
+    stopRestTimer();
+
+    restEndAtRef.current = Date.now() + restDuration * 1000;
+    setRestRemaining(restDuration);
+
+    restTimerRef.current = window.setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((restEndAtRef.current - Date.now()) / 1000));
+
+      if (remaining <= 0) {
+        stopRestTimer();
+        setRestRemaining(null);
+        playRestEndBell();
+        return;
+      }
+
+      setRestRemaining(remaining);
+    }, 250);
+
+    if (isPushAvailable() && restDuration <= MAX_PUSH_DELAY_SECONDS) {
+      initPush()
+        .then((ready) => {
+          if (!ready) return null;
+          return scheduleRestEnd(restEndAtRef.current);
+        })
+        .then((jobId) => {
+          if (jobId) restJobIdRef.current = jobId;
+        })
+        .catch(() => {
+          // El aviso push es opcional: el contador local sigue siendo la fuente principal.
+        });
+    }
+  }
+
+function stopRestTimer() {
+    if (restTimerRef.current) {
+      clearInterval(restTimerRef.current);
+      restTimerRef.current = null;
+    }
+    restEndAtRef.current = null;
+    cancelRestEnd(restJobIdRef.current);
+    restJobIdRef.current = null;
+}
+
+  function cancelRestTimer() {
+    stopRestTimer();
+    setRestRemaining(null);
+    cancelRestEnd(restJobIdRef.current);
+    restJobIdRef.current = null;
+  }
+
+  function handleInputBlur(event, setIndex) {
+    const set = item.sets[setIndex];
+    if (!set) return;
+    if (set.weight === "" || set.reps === "") return;
+
+    const related = event.relatedTarget;
+    if (related && typeof related.closest === "function") {
+      if (related.closest(".rest-timer-bar") || related.closest(".exercise-header")) {
+        return;
+      }
+    }
+
+    startRestTimer();
+  }
+
+  function changeRestDuration(delta) {
+    const next = Math.min(REST_MAX_SECONDS, Math.max(REST_MIN_SECONDS, restDuration + delta));
+    setRestDuration(next);
+
+    if (item.exerciseId) {
+      const durations = loadRestDurations();
+      durations[item.exerciseId] = next;
+      localStorage.setItem(REST_DURATIONS_KEY, JSON.stringify(durations));
+    }
+  }
+
+  function toggleRestEnabled() {
+    const next = !restEnabled;
+    setRestEnabled(next);
+    localStorage.setItem(REST_ENABLED_KEY, next ? "1" : "0");
+    if (!next) cancelRestTimer();
+  }
+
   function handleMuscleGroupChange(value) {
     setSelectedMuscleGroup(value);
     onChange(index, { ...item, exerciseId: "" });
@@ -97,9 +251,21 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
         <div>
           <h3>{singleMode ? "Ejercicio" : `Ejercicio ${index + 1}`}</h3>
         </div>
-        <button className="danger-icon" onClick={() => onRemove(index)} title={singleMode ? "Limpiar ejercicio" : "Eliminar ejercicio"}>
-          <Trash2 size={18} />
-        </button>
+        <div className="item-actions">
+          <button
+            type="button"
+            className={`rest-toggle-button ${restEnabled ? "rest-toggle-on" : ""}`}
+            onClick={toggleRestEnabled}
+            aria-pressed={restEnabled}
+            title={restEnabled ? "Desactivar descanso automático" : "Activar descanso automático"}
+            aria-label={restEnabled ? "Desactivar descanso automático" : "Activar descanso automático"}
+          >
+            {restEnabled ? <Timer size={18} /> : <TimerOff size={18} />}
+          </button>
+          <button className="danger-icon" onClick={() => onRemove(index)} title={singleMode ? "Limpiar ejercicio" : "Eliminar ejercicio"}>
+            <Trash2 size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="selector-stack">
@@ -127,6 +293,35 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
           </select>
         </label>
       </div>
+
+      {restEnabled && (
+        <div className="rest-timer-bar">
+          {restRemaining === null ? (
+            <div className="rest-timer-settings">
+              <span className="rest-timer-label">Descanso por serie</span>
+              <div className="rest-timer-controls">
+                <button type="button" className="rest-step-button" onClick={() => changeRestDuration(-REST_STEP_SECONDS)} aria-label="Reducir tiempo de descanso" title="Reducir descanso">
+                  <Minus size={16} />
+                </button>
+                <span className="rest-timer-value">{restDuration}s</span>
+                <button type="button" className="rest-step-button" onClick={() => changeRestDuration(REST_STEP_SECONDS)} aria-label="Aumentar tiempo de descanso" title="Aumentar descanso">
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rest-timer-counting">
+              <div className="rest-countdown">
+                <span role="timer" className="rest-countdown-number">{restRemaining}</span>
+                <span className="rest-countdown-unit">s</span>
+              </div>
+              <button type="button" className="rest-cancel-button" onClick={cancelRestTimer} aria-label="Cancelar descanso" title="Cancelar descanso">
+                <X size={18} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {loadingLastPerformance && (
         <div className="last-performance">
@@ -173,8 +368,8 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
                 <Trash2 size={15} />
               </button>
             </div>
-            <input type="number" inputMode="decimal" placeholder="Kg" value={set.weight} onChange={(e) => updateSet(setIndex, "weight", e.target.value)} />
-            <input type="number" inputMode="numeric" placeholder="Reps" value={set.reps} onChange={(e) => updateSet(setIndex, "reps", e.target.value)} />
+            <input type="number" inputMode="decimal" placeholder="Kg" value={set.weight} onChange={(e) => updateSet(setIndex, "weight", e.target.value)} onBlur={(e) => handleInputBlur(e, setIndex)} />
+            <input type="number" inputMode="numeric" placeholder="Reps" value={set.reps} onChange={(e) => updateSet(setIndex, "reps", e.target.value)} onBlur={(e) => handleInputBlur(e, setIndex)} />
           </div>
         ))}
       </div>
