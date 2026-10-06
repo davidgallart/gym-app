@@ -2,9 +2,8 @@ import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
 import { getExercisePerformanceSummary } from "../services/exerciseService";
-import { playRestEndBell } from "../lib/restTimerSound";
-import { MAX_PUSH_DELAY_SECONDS, cancelRestEnd, initPush, isPushAvailable, scheduleRestEnd } from "../lib/restNotifications";
 import { useToast } from "./ToastProvider";
+import { useRestTimer } from "./RestTimerProvider";
 
 const NO_GROUP_VALUE = "__NO_GROUP__";
 const NO_GROUP_LABEL = "Sin grupo muscular";
@@ -60,10 +59,8 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
     }
   });
   const [restDuration, setRestDuration] = useState(REST_DEFAULT_SECONDS);
-  const [restRemaining, setRestRemaining] = useState(null);
-  const restTimerRef = useRef(null);
-  const restEndAtRef = useRef(null);
-  const restJobIdRef = useRef(null);
+  const { restRemaining, startRest, cancelRest } = useRestTimer();
+  const prevExerciseIdRef = useRef(item.exerciseId);
 
   const muscleGroups = useMemo(() => {
     return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
@@ -111,7 +108,14 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
   }, [item.exerciseId, showToast]);
 
   useEffect(() => {
-    cancelRestTimer();
+    const exerciseChanged = prevExerciseIdRef.current !== item.exerciseId;
+    prevExerciseIdRef.current = item.exerciseId;
+
+    // Un descanso en marcha solo se cancela si el usuario cambia de ejercicio,
+    // nunca al volver a Entreno (montaje) ni al recargar la lista de ejercicios.
+    if (exerciseChanged) {
+      cancelRest();
+    }
 
     if (!item.exerciseId) {
       setRestDuration(REST_DEFAULT_SECONDS);
@@ -129,65 +133,6 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
     setRestDuration(getDefaultRestSeconds(selectedExercise?.muscle_group ?? ""));
   }, [item.exerciseId, exercises]);
 
-  useEffect(() => {
-    return () => {
-      if (restTimerRef.current) clearInterval(restTimerRef.current);
-      cancelRestEnd(restJobIdRef.current);
-    };
-  }, []);
-
-  function startRestTimer() {
-    if (!restEnabled) return;
-    stopRestTimer();
-
-    restEndAtRef.current = Date.now() + restDuration * 1000;
-    setRestRemaining(restDuration);
-
-    restTimerRef.current = window.setInterval(() => {
-      const remaining = Math.max(0, Math.ceil((restEndAtRef.current - Date.now()) / 1000));
-
-      if (remaining <= 0) {
-        stopRestTimer();
-        setRestRemaining(null);
-        playRestEndBell();
-        return;
-      }
-
-      setRestRemaining(remaining);
-    }, 250);
-
-    if (isPushAvailable() && restDuration <= MAX_PUSH_DELAY_SECONDS) {
-      initPush()
-        .then((ready) => {
-          if (!ready) return null;
-          return scheduleRestEnd(restEndAtRef.current);
-        })
-        .then((jobId) => {
-          if (jobId) restJobIdRef.current = jobId;
-        })
-        .catch(() => {
-          // El aviso push es opcional: el contador local sigue siendo la fuente principal.
-        });
-    }
-  }
-
-function stopRestTimer() {
-    if (restTimerRef.current) {
-      clearInterval(restTimerRef.current);
-      restTimerRef.current = null;
-    }
-    restEndAtRef.current = null;
-    cancelRestEnd(restJobIdRef.current);
-    restJobIdRef.current = null;
-}
-
-  function cancelRestTimer() {
-    stopRestTimer();
-    setRestRemaining(null);
-    cancelRestEnd(restJobIdRef.current);
-    restJobIdRef.current = null;
-  }
-
   function handleInputBlur(event, setIndex) {
     const set = item.sets[setIndex];
     if (!set) return;
@@ -200,7 +145,7 @@ function stopRestTimer() {
       }
     }
 
-    startRestTimer();
+    if (restEnabled) startRest(restDuration);
   }
 
   function changeRestDuration(delta) {
@@ -218,7 +163,7 @@ function stopRestTimer() {
     const next = !restEnabled;
     setRestEnabled(next);
     localStorage.setItem(REST_ENABLED_KEY, next ? "1" : "0");
-    if (!next) cancelRestTimer();
+    if (!next) cancelRest();
   }
 
   function handleMuscleGroupChange(value) {
@@ -315,7 +260,7 @@ function stopRestTimer() {
                 <span role="timer" className="rest-countdown-number">{restRemaining}</span>
                 <span className="rest-countdown-unit">s</span>
               </div>
-              <button type="button" className="rest-cancel-button" onClick={cancelRestTimer} aria-label="Cancelar descanso" title="Cancelar descanso">
+              <button type="button" className="rest-cancel-button" onClick={cancelRest} aria-label="Cancelar descanso" title="Cancelar descanso">
                 <X size={18} />
               </button>
             </div>

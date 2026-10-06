@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Dumbbell, History, LineChart, PlusCircle, Scale } from "lucide-react";
 import { getSession, logout, onAuthChange } from "./services/authService";
 import { isSupabaseConfigured } from "./lib/supabaseClient";
+import { RestTimerProvider } from "./components/RestTimerProvider";
 import SetupPage from "./pages/SetupPage";
 import AuthPage from "./pages/AuthPage";
 
@@ -80,39 +81,41 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
-      <header className={`topbar ${hideTopbar ? "topbar-hidden" : ""}`}>
-        <div className="brand">
-          <div className="brand-icon"><Dumbbell size={23} /></div>
-          <div>
-            <h1>Gym Tracker David</h1>
+    <RestTimerProvider>
+      <div className="app-shell">
+        <header className={`topbar ${hideTopbar ? "topbar-hidden" : ""}`}>
+          <div className="brand">
+            <div className="brand-icon"><Dumbbell size={23} /></div>
+            <div>
+              <h1>Gym Tracker David</h1>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="content">
-        <Suspense fallback={<div className="center-screen">Cargando...</div>}>
-          {activeTab === "workout" && <WorkoutPage onGoToExercises={() => setActiveTab("exercises")} />}
-          {activeTab === "exercises" && <ExercisesPage onBackToWorkout={() => setActiveTab("workout")} />}
-          {activeTab === "history" && <HistoryPage />}
-          {activeTab === "bodyWeight" && <BodyWeightPage />}
-          {activeTab === "progress" && <ProgressPage onLogout={handleLogout} />}
-        </Suspense>
-      </main>
+        <main className="content">
+          <Suspense fallback={<div className="center-screen">Cargando...</div>}>
+            {activeTab === "workout" && <WorkoutPage onGoToExercises={() => setActiveTab("exercises")} />}
+            {activeTab === "exercises" && <ExercisesPage onBackToWorkout={() => setActiveTab("workout")} />}
+            {activeTab === "history" && <HistoryPage />}
+            {activeTab === "bodyWeight" && <BodyWeightPage />}
+            {activeTab === "progress" && <ProgressPage onLogout={handleLogout} />}
+          </Suspense>
+        </main>
 
-      <nav className="bottom-nav">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const active = activeTab === tab.id;
+        <nav className="bottom-nav">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
 
-          return (
-            <button key={tab.id} className={active ? "active" : ""} onClick={() => setActiveTab(tab.id)}>
-              <Icon size={20} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+            return (
+              <button key={tab.id} className={active ? "active" : ""} onClick={() => setActiveTab(tab.id)}>
+                <Icon size={20} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    </RestTimerProvider>
   );
 }
