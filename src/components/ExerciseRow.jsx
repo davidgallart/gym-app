@@ -4,6 +4,7 @@ import { Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
 import { getExercisePerformanceSummary } from "../services/exerciseService";
 import { useToast } from "./ToastProvider";
 import { useRestTimer } from "./RestTimerProvider";
+import ConfirmDialog from "./ConfirmDialog";
 
 const NO_GROUP_VALUE = "__NO_GROUP__";
 const NO_GROUP_LABEL = "Sin grupo muscular";
@@ -43,7 +44,7 @@ function getGroupLabel(groupValue) {
   return groupValue === NO_GROUP_VALUE ? NO_GROUP_LABEL : groupValue;
 }
 
-export default function ExerciseRow({ index, item, exercises, onChange, onRemove, singleMode = false }) {
+export default function ExerciseRow({ index, item, exercises, onChange, onRemove, singleMode = false, onSaveAndSwitchExercise }) {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
   const [lastPerformance, setLastPerformance] = useState([]);
   const [bestPerformance, setBestPerformance] = useState(null);
@@ -61,6 +62,9 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
   const [restDuration, setRestDuration] = useState(REST_DEFAULT_SECONDS);
   const { restRemaining, startRest, cancelRest } = useRestTimer();
   const prevExerciseIdRef = useRef(item.exerciseId);
+
+  // Modal state for unsaved series confirmation
+  const [confirmModal, setConfirmModal] = useState(null); // { type: 'exercise'|'group', nextValue, currentName, onSave, onDiscard }
 
   const muscleGroups = useMemo(() => {
     return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
@@ -167,8 +171,52 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
   }
 
   function handleMuscleGroupChange(value) {
-    setSelectedMuscleGroup(value);
-    onChange(index, { ...item, exerciseId: "" });
+    const hasFilledSets = item.sets.some(
+      (set) => set.weight !== "" && set.reps !== ""
+    );
+
+    if (!hasFilledSets) {
+      setSelectedMuscleGroup(value);
+      onChange(index, { ...item, exerciseId: "" });
+      return;
+    }
+
+    const currentName = exercises.find((exercise) => exercise.id === item.exerciseId)?.name ?? "el ejercicio seleccionado";
+    setConfirmModal({
+      type: "group",
+      nextValue: value,
+      currentName,
+      onSave: () => {
+        onSaveAndSwitchExercise?.("");
+        setSelectedMuscleGroup(value);
+      },
+      onDiscard: () => {
+        setSelectedMuscleGroup(value);
+        onChange(index, { ...item, exerciseId: "", sets: [{ weight: "", reps: "" }] });
+      },
+    });
+  }
+
+  function handleExerciseSelectChange(nextExerciseId) {
+    if (nextExerciseId === item.exerciseId) return;
+
+    const hasFilledSets = item.sets.some(
+      (set) => set.weight !== "" && set.reps !== ""
+    );
+
+    if (!hasFilledSets) {
+      onChange(index, { ...item, exerciseId: nextExerciseId });
+      return;
+    }
+
+    const currentName = exercises.find((exercise) => exercise.id === item.exerciseId)?.name ?? "el ejercicio seleccionado";
+    setConfirmModal({
+      type: "exercise",
+      nextValue: nextExerciseId,
+      currentName,
+      onSave: () => onSaveAndSwitchExercise?.(nextExerciseId),
+      onDiscard: () => onChange(index, { ...item, exerciseId: nextExerciseId, sets: [{ weight: "", reps: "" }] }),
+    });
   }
 
   function updateSet(setIndex, field, value) {
@@ -191,7 +239,8 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
   }
 
   return (
-    <section className="card exercise-card">
+    <>
+      <section className="card exercise-card">
       <div className="exercise-header">
         <div>
           <h3>{singleMode ? "Ejercicio" : `Ejercicio ${index + 1}`}</h3>
@@ -228,7 +277,7 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
           Ejercicio
           <select
             value={item.exerciseId}
-            onChange={(e) => onChange(index, { ...item, exerciseId: e.target.value })}
+            onChange={(e) => handleExerciseSelectChange(e.target.value)}
             disabled={!selectedMuscleGroup}
           >
             <option value="">{selectedMuscleGroup ? "Selecciona ejercicio" : "Primero elige un grupo"}</option>
@@ -323,5 +372,32 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
         <Plus size={18} /> Añadir serie
       </button>
     </section>
+
+    {confirmModal && (
+      <ConfirmDialog
+        open={true}
+        onClose={() => setConfirmModal(null)}
+        title="Series sin guardar"
+        message={`¿Quieres guardar estas series en "${confirmModal.currentName}"?`}
+        actions={[
+          {
+            label: "Guardar y cambiar",
+            variant: "success",
+            onClick: confirmModal.onSave,
+          },
+          {
+            label: `Descartar y cambiar${confirmModal.type === "group" ? " de grupo" : " de ejercicio"}`,
+            variant: "danger",
+            onClick: confirmModal.onDiscard,
+          },
+          {
+            label: "Cancelar",
+            variant: "warning",
+            onClick: () => {},
+          },
+        ]}
+      />
+    )}
+    </>
   );
 }

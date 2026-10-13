@@ -107,6 +107,20 @@ export default function WorkoutPage({ onGoToExercises }) {
     }
   }
 
+  async function handleSaveAndSwitchExercise(nextExerciseId) {
+    setSaving(true);
+
+    try {
+      await saveWorkout({ workoutDate, exercises: [currentExercise] });
+      showToast("Ejercicio guardado en el entrenamiento de hoy", "success");
+      setCurrentExercise({ ...emptyExercise(), exerciseId: nextExerciseId });
+    } catch (error) {
+      showToast(error.message, "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="page">
       <section className="hero-card compact-hero">
@@ -142,6 +156,7 @@ export default function WorkoutPage({ onGoToExercises }) {
           onChange={updateExercise}
           onRemove={resetCurrentExercise}
           singleMode
+          onSaveAndSwitchExercise={handleSaveAndSwitchExercise}
         />
       )}
 
