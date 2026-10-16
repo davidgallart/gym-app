@@ -1,13 +1,19 @@
-import React, { Suspense, lazy } from "react";
+import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { getExercises } from "../services/exerciseService";
-import { getExerciseProgress } from "../services/workoutService";
-
-const ProgressLineChart = lazy(() => import("../components/charts/ProgressLineChart"));
+import { getExerciseSessionStats } from "../services/workoutService";
+import { formatSessionDate, formatSet, getPerformanceTrend, selectTopSets } from "../lib/performance";
 
 const NO_GROUP_VALUE = "__NO_GROUP__";
 const NO_GROUP_LABEL = "Sin grupo muscular";
+const RECENT_SESSIONS = 4;
+
+const TREND_LABELS = {
+  improving: "Mejorando",
+  declining: "Empeorando",
+  maintaining: "Manteniendo",
+};
 
 function getGroupValue(exercise) {
   return exercise.muscle_group?.trim() || NO_GROUP_VALUE;
@@ -21,8 +27,11 @@ export default function ProgressPage({ onLogout }) {
   const [exercises, setExercises] = useState([]);
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
   const [selectedExerciseId, setSelectedExerciseId] = useState("");
-  const [progress, setProgress] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const muscleGroups = useMemo(() => {
     return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
@@ -34,6 +43,10 @@ export default function ProgressPage({ onLogout }) {
     if (!selectedMuscleGroup) return [];
     return exercises.filter((exercise) => getGroupValue(exercise) === selectedMuscleGroup);
   }, [exercises, selectedMuscleGroup]);
+
+  const selectedExercise = exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
+  const trend = getPerformanceTrend(sessions);
+  const totalPages = Math.max(1, Math.ceil(total / RECENT_SESSIONS));
 
   useEffect(() => {
     getExercises()
@@ -48,33 +61,38 @@ export default function ProgressPage({ onLogout }) {
   useEffect(() => {
     if (!selectedMuscleGroup) {
       setSelectedExerciseId("");
-      setProgress([]);
+      setPage(1);
       return;
     }
 
     const firstExercise = exercises.find((exercise) => getGroupValue(exercise) === selectedMuscleGroup);
     setSelectedExerciseId(firstExercise?.id ?? "");
+    setPage(1);
   }, [selectedMuscleGroup, exercises]);
 
   useEffect(() => {
     if (!selectedExerciseId) {
-      setProgress([]);
+      setSessions([]);
+      setTotal(0);
       return;
     }
 
-    getExerciseProgress(selectedExerciseId)
-      .then((data) => {
-        setProgress(data);
+    setLoading(true);
+    getExerciseSessionStats(selectedExerciseId, RECENT_SESSIONS, (page - 1) * RECENT_SESSIONS)
+      .then(({ sessions: pageSessions, total: totalSessions }) => {
+        setSessions(pageSessions);
+        setTotal(totalSessions);
         setMessage("");
       })
-      .catch((error) => setMessage(error.message));
-  }, [selectedExerciseId]);
+      .catch((error) => setMessage(error.message))
+      .finally(() => setLoading(false));
+  }, [selectedExerciseId, page]);
 
   return (
     <div className="page">
       <section className="hero-card">
         <div className="section-header-row">
-          <h2>Graficas de Progreso</h2>
+          <h2>Progreso</h2>
           {onLogout && (
             <button className="secondary-button small-button" onClick={onLogout}>
               <LogOut size={16} /> Salir
@@ -96,7 +114,10 @@ export default function ProgressPage({ onLogout }) {
             Ejercicio
             <select
               value={selectedExerciseId}
-              onChange={(e) => setSelectedExerciseId(e.target.value)}
+              onChange={(e) => {
+                setSelectedExerciseId(e.target.value);
+                setPage(1);
+              }}
               disabled={!selectedMuscleGroup}
             >
               <option value="">{selectedMuscleGroup ? "Selecciona ejercicio" : "Primero elige un grupo"}</option>
@@ -110,25 +131,58 @@ export default function ProgressPage({ onLogout }) {
 
       {message && <p className="message">{message}</p>}
 
-      <section className="card chart-card">
-        <h3>Peso máximo</h3>
-        {progress.length === 0 ? (
-          <p className="empty">No hay datos suficientes todavía.</p>
-        ) : (
-          <Suspense fallback={<p className="empty">Cargando gráfica...</p>}>
-            <ProgressLineChart data={progress} dataKey="maxWeight" name="Peso máximo" />
-          </Suspense>
-        )}
-      </section>
+      <section className="card">
+        <div className="section-header-row">
+          <h3>{selectedExercise ? selectedExercise.name : "Últimas sesiones"}</h3>
+          {trend && (
+            <span className={`trend-badge ${trend}`}>{TREND_LABELS[trend]}</span>
+          )}
+        </div>
 
-      <section className="card chart-card">
-        <h3>Volumen estimado</h3>
-        {progress.length === 0 ? (
-          <p className="empty">No hay datos suficientes todavía.</p>
-        ) : (
-          <Suspense fallback={<p className="empty">Cargando gráfica...</p>}>
-            <ProgressLineChart data={progress} dataKey="totalVolume" name="Volumen" />
-          </Suspense>
+        {loading && <p className="empty">Cargando...</p>}
+
+        {!loading && sessions.length === 0 && (
+          <p className="empty">No hay datos todavía. Registra entrenos para ver tu progreso.</p>
+        )}
+
+        {!loading && sessions.length > 0 && (
+          <div className="sessions-grid">
+            {sessions.map((session, index) => (
+              <div className="session-card" key={session.date}>
+                <div className="session-card-header">
+                  <strong>Día {(page - 1) * RECENT_SESSIONS + index + 1}</strong>
+                  <span>{formatSessionDate(session.date)}</span>
+                </div>
+                <div className="session-sets">
+                  {selectTopSets(session.sets).map((set, setIndex) => (
+                    <span className="session-set" key={setIndex}>
+                      {formatSet(set, setIndex)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && sessions.length > 0 && totalPages > 1 && (
+          <div className="pagination-controls" aria-label="Paginación de sesiones">
+            <button
+              className="secondary-button small-button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              <ChevronLeft size={16} /> Recientes
+            </button>
+            <span>Página {page} de {totalPages}</span>
+            <button
+              className="secondary-button small-button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Anteriores <ChevronRight size={16} />
+            </button>
+          </div>
         )}
       </section>
     </div>

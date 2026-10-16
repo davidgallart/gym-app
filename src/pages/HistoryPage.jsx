@@ -218,7 +218,7 @@ export default function HistoryPage() {
                         .sort((a, b) => a.set_number - b.set_number)
                         .map((set) => (
                           <span key={set.id}>
-                            Serie {set.set_number}: {Number(set.weight)} kg x {set.reps}
+                            Serie {set.set_number}: {Number(set.weight)}Kg x {set.reps}
                           </span>
                         ))}
                     </div>

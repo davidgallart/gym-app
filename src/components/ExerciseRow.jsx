@@ -1,7 +1,8 @@
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
-import { getExercisePerformanceSummary } from "../services/exerciseService";
+import { getRecentExerciseSessions } from "../services/workoutService";
+import { formatSessionDate, formatSet, selectTopSets } from "../lib/performance";
 import { useToast } from "./ToastProvider";
 import { useRestTimer } from "./RestTimerProvider";
 import ConfirmDialog from "./ConfirmDialog";
@@ -46,9 +47,8 @@ function getGroupLabel(groupValue) {
 
 export default function ExerciseRow({ index, item, exercises, onChange, onRemove, singleMode = false, onSaveAndSwitchExercise }) {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
-  const [lastPerformance, setLastPerformance] = useState([]);
-  const [bestPerformance, setBestPerformance] = useState(null);
-  const [loadingLastPerformance, setLoadingLastPerformance] = useState(false);
+  const [recentSessions, setRecentSessions] = useState([]);
+  const [loadingRecent, setLoadingRecent] = useState(false);
   const { showToast } = useToast();
 
   const [restEnabled, setRestEnabled] = useState(() => {
@@ -88,27 +88,24 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
 
   useEffect(() => {
     if (!item.exerciseId) {
-      setLastPerformance([]);
-      setBestPerformance(null);
+      setRecentSessions([]);
       return;
     }
 
-    setLoadingLastPerformance(true);
+    setLoadingRecent(true);
 
-    getExercisePerformanceSummary(item.exerciseId)
-      .then(({ lastPerformance, bestSet }) => {
-        setLastPerformance(lastPerformance);
-        setBestPerformance(bestSet);
-        if (lastPerformance.length > 0 || bestSet) {
+    getRecentExerciseSessions(item.exerciseId, 3)
+      .then((data) => {
+        setRecentSessions(data);
+        if (data.length > 0) {
           showToast("Marcas cargadas", "success");
         }
       })
       .catch((error) => {
-        setLastPerformance([]);
-        setBestPerformance(null);
+        setRecentSessions([]);
         showToast(error.message, "error");
       })
-      .finally(() => setLoadingLastPerformance(false));
+      .finally(() => setLoadingRecent(false));
   }, [item.exerciseId, showToast]);
 
   useEffect(() => {
@@ -317,39 +314,37 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
         </div>
       )}
 
-      {loadingLastPerformance && (
+      {loadingRecent && (
         <div className="last-performance">
-          <strong>Cargando última marca...</strong>
+          <strong>Cargando últimas marcas...</strong>
         </div>
       )}
 
-      {!loadingLastPerformance && item.exerciseId && lastPerformance.length === 0 && (
-        <div className="last-performance muted-last-performance">
-          <strong>Última vez:</strong>
-          <span>Todavía no hay marcas guardadas para este ejercicio.</span>
+      {!loadingRecent && item.exerciseId && recentSessions.length === 0 && (
+        <div className="recent-sessions recent-sessions-empty">
+          <span>No hay registro</span>
         </div>
       )}
 
-      {!loadingLastPerformance && lastPerformance.length > 0 && (
-        <div className="performance-summary">
-          <div className="last-performance">
-            <strong>Última sesión:</strong>
-            {lastPerformance.map((set) => (
-              <span key={`${set.set_number}-${set.weight}-${set.reps}`}>
-                Serie {set.set_number}: {Number(set.weight)} kg x {set.reps} reps
+      {!loadingRecent && recentSessions.length > 0 && (
+        <div className="recent-sessions">
+          {recentSessions.map((session, index) => (
+            <div
+              className={`recent-session${index === 0 ? " recent-session-latest" : ""}`}
+              key={session.date}
+            >
+              <span className="recent-session-date">
+                {index === 0 ? "Último día" : formatSessionDate(session.date)}
               </span>
-            ))}
-          </div>
-
-          {bestPerformance && (
-            <div className="last-performance best-performance">
-              <strong>Máximo registrado:</strong>
-              <span>
-                {Number(bestPerformance.weight)} kg x {bestPerformance.reps} reps
-                {bestPerformance.workout_date ? ` · ${bestPerformance.workout_date}` : ""}
-              </span>
+              <div className="recent-session-sets">
+                {selectTopSets(session.sets).map((set, setIndex) => (
+                  <span className="recent-set" key={setIndex}>
+                    {formatSet(set, setIndex)}
+                  </span>
+                ))}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       )}
 

@@ -202,3 +202,56 @@ export async function getExerciseProgress(exerciseId) {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 }
+
+async function fetchExerciseSessions(exerciseId) {
+  if (!exerciseId) return [];
+
+  const { data, error } = await supabase
+    .from("workout_exercises")
+    .select(`
+      id,
+      workouts ( workout_date, created_at ),
+      workout_sets ( id, set_number, reps, weight )
+    `)
+    .eq("exercise_id", exerciseId);
+
+  if (error) throw error;
+
+  const byDate = new Map();
+
+  for (const we of data ?? []) {
+    const date = we.workouts?.workout_date;
+    if (!date) continue;
+
+    const sets = (we.workout_sets ?? [])
+      .filter((s) => s.reps !== "" && s.weight !== "" && Number(s.reps) > 0 && Number(s.weight) >= 0)
+      .map((s) => ({
+        set_number: s.set_number,
+        reps: Number(s.reps),
+        weight: Number(s.weight),
+      }));
+
+    if (sets.length === 0) continue;
+
+    const existing = byDate.get(date) ?? { date, sets: [] };
+    existing.sets.push(...sets);
+    byDate.set(date, existing);
+  }
+
+  return Array.from(byDate.values())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .map((session) => ({
+      ...session,
+      sets: session.sets.sort((a, b) => a.set_number - b.set_number),
+    }));
+}
+
+export async function getRecentExerciseSessions(exerciseId, limit = 4, offset = 0) {
+  const all = await fetchExerciseSessions(exerciseId);
+  return all.slice(offset, offset + limit);
+}
+
+export async function getExerciseSessionStats(exerciseId, limit = 4, offset = 0) {
+  const all = await fetchExerciseSessions(exerciseId);
+  return { sessions: all.slice(offset, offset + limit), total: all.length };
+}

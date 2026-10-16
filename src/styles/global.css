@@ -18,6 +18,7 @@
   --red-soft: rgba(239, 68, 68, 0.14);
   --success: #22c55e;
   --warning: #f59e0b;
+  --title-date: #fbbf24;
 }
 
 html {
@@ -835,7 +836,7 @@ select:focus {
 }
 
 .weekly-row em {
-  color: #fbbf24;
+  color: var(--title-date);
   font-style: normal;
 }
 
@@ -1061,4 +1062,135 @@ select:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Comparativa de sesiones (Progreso) */
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.session-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #0c0c0f;
+  border: 1px solid var(--border-soft);
+  min-width: 0;
+}
+
+.session-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-card-header strong {
+  color: var(--title-date);
+  font-size: 14px;
+}
+
+.session-card-header span {
+  color: var(--title-date);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.session-sets {
+  display: grid;
+  gap: 4px;
+}
+
+.session-set {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Tendencia de rendimiento (distinto a la de peso corporal) */
+.trend-badge.improving {
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+}
+
+.trend-badge.declining {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+.trend-badge.maintaining {
+  color: var(--muted);
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+}
+
+/* Últimos días en el registro de entreno */
+.recent-sessions {
+  display: flex;
+  padding: 6px;
+  margin: 0 -8px;
+  border-radius: 16px;
+  background: #0c0c0f;
+  border: 1px solid var(--border-soft);
+  min-height: 88px;
+}
+
+.recent-session {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.recent-session:first-child {
+  border-left: 0;
+}
+
+.recent-session-date {
+  color: var(--title-date);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.recent-session-sets {
+  display: grid;
+  gap: 4px;
+}
+
+.recent-set {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.recent-session-latest .recent-set {
+  color: #fef9c3;
+  font-size: 16px;
+}
+
+.recent-sessions-empty {
+  justify-content: center;
+  align-items: center;
+}
+
+.recent-sessions-empty span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+@media (min-width: 900px) {
+  .sessions-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
