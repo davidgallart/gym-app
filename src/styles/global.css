@@ -4,7 +4,7 @@
 
 :root {
   color-scheme: dark;
-  --bg: #09090b;
+  --bg: #000;
   --panel: #111113;
   --panel-soft: #18181b;
   --panel-strong: #202024;
@@ -28,9 +28,7 @@ html {
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at top right, rgba(239, 68, 68, 0.13), transparent 30%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   min-width: 320px;
 }
@@ -59,9 +57,7 @@ button:disabled {
 }
 
 .setup-card,
-.auth-card,
-.card,
-.hero-card {
+.auth-card {
   background: linear-gradient(180deg, rgba(24, 24, 27, 0.98), rgba(17, 17, 19, 0.98));
   border: 1px solid var(--border);
   border-radius: 22px;
@@ -105,13 +101,13 @@ button:disabled {
 .auth-card h1,
 .hero-card h2 {
   margin: 16px 0 7px;
-  font-size: clamp(24px, 7vw, 32px);
+  font-size: clamp(26px, 7vw, 34px);
   letter-spacing: -0.04em;
 }
 
 .card h3 {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .auth-card p,
@@ -136,19 +132,19 @@ label {
   gap: 8px;
   color: var(--text);
   font-weight: 750;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 input,
 select {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 15px;
-  padding: 14px 14px;
+  border-radius: 16px;
+  padding: 15px 15px;
   background: #0f0f12;
   color: var(--text);
   outline: none;
-  min-height: 48px;
+  min-height: 52px;
 }
 
 input::placeholder {
@@ -168,13 +164,13 @@ select:focus {
 .danger-icon,
 .mini-danger-button {
   border: 0;
-  border-radius: 15px;
+  border-radius: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   font-weight: 850;
-  min-height: 46px;
+  min-height: 48px;
   transition: transform 0.12s ease, background 0.12s ease, border 0.12s ease;
 }
 
@@ -188,7 +184,7 @@ select:focus {
 .primary-button {
   background: linear-gradient(135deg, #ef4444, #b91c1c);
   color: white;
-  padding: 13px 16px;
+  padding: 14px 18px;
   box-shadow: 0 12px 24px rgba(239, 68, 68, 0.2);
 }
 
@@ -196,18 +192,18 @@ select:focus {
   background: var(--panel-strong);
   color: var(--text);
   border: 1px solid var(--border);
-  padding: 12px 15px;
+  padding: 13px 16px;
 }
 
 .small-button {
-  min-height: 38px;
-  padding: 8px 10px;
-  font-size: 13px;
+  min-height: 40px;
+  padding: 9px 12px;
+  font-size: 14px;
 }
 
 .icon-button {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   background: var(--panel-strong);
   color: var(--text);
   border: 1px solid var(--border);
@@ -281,7 +277,7 @@ select:focus {
 
 .brand h1 {
   margin: 0;
-  font-size: 17px;
+  font-size: 18px;
   letter-spacing: -0.03em;
 }
 
@@ -297,19 +293,18 @@ select:focus {
 
 .content {
   width: 100%;
-  max-width: 980px;
   margin: 0 auto;
   padding: 14px 12px;
 }
 
 .page {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .hero-card,
 .card {
-  padding: 16px;
+  padding: 0;
 }
 
 .compact-hero h2 {
@@ -351,13 +346,13 @@ select:focus {
 
 .last-performance {
   display: grid;
-  gap: 7px;
-  padding: 12px;
+  gap: 8px;
+  padding: 14px;
   border-radius: 16px;
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.18);
   color: #fee2e2;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .last-performance span {
@@ -373,16 +368,16 @@ select:focus {
 .sets-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .set-card {
-  padding: 12px;
+  padding: 14px;
   border-radius: 18px;
   background: #0c0c0f;
   border: 1px solid var(--border-soft);
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .set-card-header {
@@ -433,12 +428,12 @@ select:focus {
   border-radius: 18px;
   background: transparent;
   color: var(--muted);
-  padding: 10px 4px;
+  padding: 11px 4px;
   display: grid;
   place-items: center;
   gap: 4px;
   font-weight: 800;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .bottom-nav button.active {
@@ -482,7 +477,7 @@ select:focus {
 .history-item span {
   display: block;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -512,7 +507,7 @@ select:focus {
 
 .edit-set-row span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .chart-card {
@@ -537,14 +532,14 @@ select:focus {
 }
 
 .empty {
-  padding: 15px;
+  padding: 16px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px dashed var(--border);
 }
 
 .message {
-  padding: 12px 14px;
+  padding: 13px 15px;
   border-radius: 16px;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.18);
@@ -593,7 +588,7 @@ select:focus {
 
   .hero-card,
   .card {
-    padding: 20px;
+    padding: 0;
   }
 
   .inline-form {
@@ -625,7 +620,7 @@ select:focus {
   }
 
   .page {
-    gap: 18px;
+    gap: 22px;
   }
 
   .sets-grid {
@@ -744,14 +739,14 @@ select:focus {
 
 .weight-summary-grid {
   display: grid;
-  gap: 10px;
-  margin: 14px 0;
+  gap: 12px;
+  margin: 16px 0;
 }
 
 .summary-box {
   display: grid;
-  gap: 7px;
-  padding: 14px;
+  gap: 8px;
+  padding: 16px;
   border-radius: 18px;
   background: #0c0c0f;
   border: 1px solid var(--border-soft);
@@ -760,22 +755,22 @@ select:focus {
 .summary-box span,
 .summary-box small {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .summary-box strong {
   color: var(--text);
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .trend-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
 }
 
@@ -800,8 +795,8 @@ select:focus {
 .weekly-list,
 .weight-log-list {
   display: grid;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .weekly-row,
@@ -810,7 +805,7 @@ select:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 13px;
+  padding: 15px;
   border-radius: 18px;
   background: #0c0c0f;
   border: 1px solid var(--border-soft);
@@ -831,7 +826,7 @@ select:focus {
 .weight-log-row span,
 .weekly-row em {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -892,7 +887,7 @@ select:focus {
   gap: 10px;
   margin: 8px 0 12px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .chart-legend-note span {
@@ -928,7 +923,7 @@ select:focus {
 
 .pagination-controls span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -946,12 +941,12 @@ select:focus {
 }
 
 .rest-toggle-button {
-  width: 42px;
-  height: 42px;
-  min-height: 42px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
   flex: 0 0 auto;
   border: 1px solid var(--border);
-  border-radius: 15px;
+  border-radius: 16px;
   background: var(--panel-strong);
   color: var(--muted);
   display: inline-flex;
@@ -969,7 +964,7 @@ select:focus {
 .rest-timer-bar {
   display: grid;
   gap: 10px;
-  padding: 12px;
+  padding: 14px;
   border-radius: 16px;
   background: #0c0c0f;
   border: 1px solid var(--border-soft);
@@ -985,7 +980,7 @@ select:focus {
 .rest-timer-label {
   font-family: inherit;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -996,11 +991,11 @@ select:focus {
 }
 
 .rest-step-button {
-  width: 34px;
-  height: 34px;
-  min-height: 34px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 13px;
   background: var(--panel-strong);
   color: var(--text);
   display: inline-flex;
@@ -1013,11 +1008,11 @@ select:focus {
 }
 
 .rest-timer-value {
-  min-width: 48px;
+  min-width: 52px;
   text-align: center;
   font-family: inherit;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text);
 }
 
@@ -1036,7 +1031,7 @@ select:focus {
 
 .rest-countdown-number {
   font-family: inherit;
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -1047,16 +1042,16 @@ select:focus {
   font-family: inherit;
   color: var(--muted);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .rest-cancel-button {
-  width: 38px;
-  height: 38px;
-  min-height: 38px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
   flex: 0 0 auto;
   border: 1px solid rgba(239, 68, 68, 0.22);
-  border-radius: 12px;
+  border-radius: 13px;
   background: var(--red-soft);
   color: #fecaca;
   display: inline-flex;
@@ -1068,14 +1063,14 @@ select:focus {
 .sessions-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .session-card {
   display: grid;
-  gap: 8px;
-  padding: 12px;
+  gap: 10px;
+  padding: 14px;
   border-radius: 16px;
   background: #0c0c0f;
   border: 1px solid var(--border-soft);
@@ -1092,12 +1087,12 @@ select:focus {
 
 .session-card-header strong {
   color: var(--title-date);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .session-card-header span {
   color: var(--title-date);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -1108,7 +1103,7 @@ select:focus {
 
 .session-set {
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -1135,11 +1130,10 @@ select:focus {
 .recent-sessions {
   display: flex;
   padding: 6px;
-  margin: 0 -8px;
   border-radius: 16px;
   background: #0c0c0f;
   border: 1px solid var(--border-soft);
-  min-height: 88px;
+  min-height: 96px;
 }
 
 .recent-session {
@@ -1147,36 +1141,30 @@ select:focus {
   min-width: 0;
   display: grid;
   align-content: start;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 12px;
+  gap: 10px;
+  padding: 10px;
   border-left: 1px solid var(--border-soft);
+  color: var(--muted);
 }
 
 .recent-session:first-child {
   border-left: 0;
 }
 
+.recent-session-latest {
+  color: var(--text);
+}
+
 .recent-session-date {
   color: var(--title-date);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
 }
 
 .recent-session-sets {
   display: grid;
   gap: 4px;
-}
-
-.recent-set {
-  color: var(--text);
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.recent-session-latest .recent-set {
-  color: #fef9c3;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .recent-sessions-empty {

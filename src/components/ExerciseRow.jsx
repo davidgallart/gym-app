@@ -94,7 +94,7 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
 
     setLoadingRecent(true);
 
-    getRecentExerciseSessions(item.exerciseId, 3)
+    getRecentExerciseSessions(item.exerciseId, 2)
       .then((data) => {
         setRecentSessions(data);
         if (data.length > 0) {
@@ -338,9 +338,7 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
               </span>
               <div className="recent-session-sets">
                 {selectTopSets(session.sets).map((set, setIndex) => (
-                  <span className="recent-set" key={setIndex}>
-                    {formatSet(set, setIndex)}
-                  </span>
+                  <span key={setIndex}>{formatSet(set, setIndex)}</span>
                 ))}
               </div>
             </div>
