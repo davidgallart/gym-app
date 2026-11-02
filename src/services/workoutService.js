@@ -1,5 +1,7 @@
 import { supabase } from "../lib/supabaseClient";
 
+const POSITION_CHUNK_SIZE = 50;
+
 async function currentUserId() {
   const { data, error } = await supabase.auth.getUser();
   if (error) throw error;
@@ -78,25 +80,31 @@ export async function saveWorkout({ workoutDate, exercises }) {
   return workout;
 }
 
-export async function getWorkoutHistory() {
-  const { data, error } = await supabase
+export async function getWorkoutHistoryPage({ limit = 5, offset = 0 } = {}) {
+  const { data, error, count } = await supabase
     .from("workouts")
     .select(`
       id,
       workout_date,
       created_at,
-      workout_exercises (
+      workout_exercises!inner (
         id,
         exercise_order,
         exercises ( id, name, muscle_group ),
         workout_sets ( id, set_number, reps, weight )
       )
-    `)
+    `, { count: "exact" })
     .order("workout_date", { ascending: false })
-    .limit(80);
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return (data ?? []).filter((workout) => (workout.workout_exercises ?? []).length > 0);
+  return { workouts: data ?? [], total: count ?? 0 };
+}
+
+export async function getWorkoutHistory() {
+  const { workouts } = await getWorkoutHistoryPage({ limit: 80, offset: 0 });
+  return workouts;
 }
 
 export async function updateWorkout(workoutId, editState) {
@@ -170,57 +178,27 @@ export async function deleteWorkoutExercise(workoutExerciseId) {
   if (error) throw error;
 }
 
-export async function getExerciseProgress(exerciseId) {
-  const { data, error } = await supabase
-    .from("workout_sets")
-    .select(`
-      reps,
-      weight,
-      workout_exercises!inner (
-        exercise_id,
-        workouts!inner ( workout_date )
-      )
-    `)
-    .eq("workout_exercises.exercise_id", exerciseId);
+export async function swapWorkoutExerciseOrder(firstId, firstOrder, secondId, secondOrder) {
+  const { error: firstError } = await supabase
+    .from("workout_exercises")
+    .update({ exercise_order: secondOrder })
+    .eq("id", firstId);
 
-  if (error) throw error;
+  if (firstError) throw firstError;
 
-  const grouped = new Map();
+  const { error: secondError } = await supabase
+    .from("workout_exercises")
+    .update({ exercise_order: firstOrder })
+    .eq("id", secondId);
 
-  for (const row of data ?? []) {
-    const date = row.workout_exercises.workouts.workout_date;
-    const estimatedVolume = Number(row.weight) * Number(row.reps);
-    const current = grouped.get(date) ?? { date, maxWeight: 0, totalVolume: 0 };
-
-    current.maxWeight = Math.max(current.maxWeight, Number(row.weight));
-    current.totalVolume += estimatedVolume;
-
-    grouped.set(date, current);
-  }
-
-  return Array.from(grouped.values()).sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  if (secondError) throw secondError;
 }
 
-async function fetchExerciseSessions(exerciseId) {
-  if (!exerciseId) return [];
-
-  const { data, error } = await supabase
-    .from("workout_exercises")
-    .select(`
-      id,
-      workouts ( workout_date, created_at ),
-      workout_sets ( id, set_number, reps, weight )
-    `)
-    .eq("exercise_id", exerciseId);
-
-  if (error) throw error;
-
+function mapExerciseSessionRows(rows) {
   const byDate = new Map();
 
-  for (const we of data ?? []) {
-    const date = we.workouts?.workout_date;
+  for (const we of rows ?? []) {
+    const date = we.workoutDate;
     if (!date) continue;
 
     const sets = (we.workout_sets ?? [])
@@ -233,7 +211,14 @@ async function fetchExerciseSessions(exerciseId) {
 
     if (sets.length === 0) continue;
 
-    const existing = byDate.get(date) ?? { date, sets: [] };
+    const existing = byDate.get(date) ?? {
+      date,
+      sets: [],
+      workoutId: we.workout_id,
+      workoutExerciseId: we.id,
+      muscleGroup: we.exercises?.muscle_group?.trim() || null,
+    };
+
     existing.sets.push(...sets);
     byDate.set(date, existing);
   }
@@ -246,12 +231,143 @@ async function fetchExerciseSessions(exerciseId) {
     }));
 }
 
-export async function getRecentExerciseSessions(exerciseId, limit = 4, offset = 0) {
-  const all = await fetchExerciseSessions(exerciseId);
-  return all.slice(offset, offset + limit);
+async function fetchExerciseSessions(exerciseId) {
+  if (!exerciseId) return [];
+
+  const { data, error } = await supabase
+    .from("workout_exercises")
+    .select(`
+      id,
+      workout_id,
+      exercise_order,
+      exercises ( muscle_group ),
+      workouts ( workout_date, created_at ),
+      workout_sets ( id, set_number, reps, weight )
+    `)
+    .eq("exercise_id", exerciseId);
+
+  if (error) throw error;
+
+  return mapExerciseSessionRows(
+    (data ?? []).map((we) => ({
+      ...we,
+      workoutDate: we.workouts?.workout_date,
+    }))
+  );
 }
 
-export async function getExerciseSessionStats(exerciseId, limit = 4, offset = 0) {
+export async function getExerciseSessionsPage(exerciseId, { limit = 20, offset = 0 } = {}) {
+  if (!exerciseId) return { sessions: [], hasMore: false };
+
+  let workoutQuery = supabase
+    .from("workouts")
+    .select("id, workout_date, workout_exercises!inner(id)")
+    .eq("workout_exercises.exercise_id", exerciseId)
+    .order("workout_date", { ascending: false });
+
+  if (limit) {
+    workoutQuery = workoutQuery.range(offset, offset + limit - 1);
+  }
+
+  const { data: workouts, error: workoutsError } = await workoutQuery;
+  if (workoutsError) throw workoutsError;
+
+  const workoutIds = (workouts ?? []).map((workout) => workout.id);
+  if (workoutIds.length === 0) {
+    return { sessions: [], hasMore: false };
+  }
+
+  const workoutById = new Map((workouts ?? []).map((workout) => [workout.id, workout]));
+
+  const { data, error } = await supabase
+    .from("workout_exercises")
+    .select(`
+      id,
+      workout_id,
+      exercises ( muscle_group ),
+      workout_sets ( id, set_number, reps, weight )
+    `)
+    .eq("exercise_id", exerciseId)
+    .in("workout_id", workoutIds);
+
+  if (error) throw error;
+
+  const sessions = await attachPositions(
+    mapExerciseSessionRows(
+      (data ?? []).map((we) => ({
+        ...we,
+        workoutDate: workoutById.get(we.workout_id)?.workout_date,
+      }))
+    )
+  );
+
+  const hasMore = Boolean(limit) && workoutIds.length === limit;
+
+  return { sessions, hasMore };
+}
+
+async function attachPositions(sessions) {
+  if (!sessions.length) return sessions;
+
+  const workoutIds = Array.from(new Set(sessions.map((session) => session.workoutId).filter(Boolean)));
+  if (workoutIds.length === 0) return sessions;
+
+  const siblingsByWorkout = new Map();
+
+  for (let index = 0; index < workoutIds.length; index += POSITION_CHUNK_SIZE) {
+    const chunk = workoutIds.slice(index, index + POSITION_CHUNK_SIZE);
+    const { data, error } = await supabase
+      .from("workouts")
+      .select(`
+        id,
+        workout_exercises ( id, exercise_order, exercises ( muscle_group ) )
+      `)
+      .in("id", chunk);
+
+    if (error) throw error;
+
+    for (const workout of data ?? []) {
+      siblingsByWorkout.set(workout.id, workout.workout_exercises ?? []);
+    }
+  }
+
+  for (const session of sessions) {
+    const siblings = siblingsByWorkout.get(session.workoutId) ?? [];
+    const ordered = [...siblings].sort((a, b) => (a.exercise_order ?? 0) - (b.exercise_order ?? 0));
+    const sessionIndex = ordered.findIndex((item) => item.id === session.workoutExerciseId);
+    if (sessionIndex < 0) continue;
+
+    const groupName = session.muscleGroup;
+    const groupItems = ordered.filter(
+      (item) => (item.exercises?.muscle_group?.trim() || null) === groupName
+    );
+    const groupIndex = groupItems.findIndex((item) => item.id === session.workoutExerciseId);
+    const previousGroups = ordered
+      .slice(0, sessionIndex)
+      .map((item) => item.exercises?.muscle_group?.trim() || null);
+
+    session.position = {
+      session: sessionIndex + 1,
+      sessionTotal: ordered.length,
+      group: groupIndex >= 0 ? groupIndex + 1 : null,
+      groupTotal: groupItems.length,
+      groupName,
+      previousGroups,
+    };
+  }
+
+  return sessions;
+}
+
+export async function getRecentExerciseSessions(exerciseId, limit = 4, offset = 0) {
   const all = await fetchExerciseSessions(exerciseId);
-  return { sessions: all.slice(offset, offset + limit), total: all.length };
+  return attachPositions(all.slice(offset, offset + limit));
+}
+
+export async function getExerciseSessions(exerciseId) {
+  return fetchExerciseSessions(exerciseId);
+}
+
+export async function attachSessionPositions(sessions) {
+  return attachPositions(sessions);
 }

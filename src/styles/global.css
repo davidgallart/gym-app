@@ -162,6 +162,7 @@ select:focus {
 .icon-button,
 .link-button,
 .danger-icon,
+.move-icon,
 .mini-danger-button {
   border: 0;
   border-radius: 16px;
@@ -177,7 +178,8 @@ select:focus {
 .primary-button:active,
 .secondary-button:active,
 .icon-button:active,
-.danger-icon:active {
+.danger-icon:active,
+.move-icon:active {
   transform: scale(0.98);
 }
 
@@ -235,6 +237,15 @@ select:focus {
   width: 34px;
   height: 34px;
   min-height: 34px;
+}
+
+.move-icon {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  background: var(--panel-soft);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
 }
 
 .full-width-button {
@@ -529,6 +540,53 @@ select:focus {
   border: 1px solid var(--border) !important;
   border-radius: 12px !important;
   color: var(--text) !important;
+}
+
+.chart-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chart-window {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.chart-window select {
+  width: auto;
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.chart-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chart-tooltip {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #111113;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.chart-tooltip strong {
+  font-size: 14px;
+}
+
+.chart-tooltip-sets {
+  color: var(--muted);
 }
 
 .empty {
@@ -911,6 +969,14 @@ select:focus {
   background: #fbbf24;
 }
 
+.legend-dot.score {
+  background: #ef4444;
+}
+
+.legend-dot.trend {
+  background: #a1a1aa;
+}
+
 
 .pagination-controls {
   display: flex;
@@ -1096,6 +1162,17 @@ select:focus {
   font-weight: 800;
 }
 
+.session-card .session-order {
+  margin: 0;
+  color: var(--title-date);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .session-sets {
   display: grid;
   gap: 4px;
@@ -1159,6 +1236,22 @@ select:focus {
   color: var(--title-date);
   font-size: 16px;
   font-weight: 800;
+}
+
+.recent-session-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
+.recent-session-order {
+  margin-left: auto;
+  color: var(--title-date);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .recent-session-sets {

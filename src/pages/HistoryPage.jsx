@@ -1,8 +1,9 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Edit3, Save, Trash2, X } from "lucide-react";
-import { deleteWorkoutExercise, getWorkoutHistory, updateWorkoutExercise } from "../services/workoutService";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, Save, Trash2, X } from "lucide-react";
+import { deleteWorkoutExercise, getWorkoutHistoryPage, swapWorkoutExerciseOrder, updateWorkoutExercise } from "../services/workoutService";
 import { useToast } from "../components/ToastProvider";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 function formatDate(date) {
   return new Date(`${date}T00:00:00`).toLocaleDateString("es-ES");
@@ -65,35 +66,55 @@ export default function HistoryPage() {
   const [editExerciseState, setEditExerciseState] = useState(null);
   const [loading, setLoading] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
+  const [totalHistory, setTotalHistory] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [pendingMove, setPendingMove] = useState(null);
   const { showToast } = useToast();
 
   const groupedHistory = useMemo(() => groupHistoryByDate(history), [history]);
-  const totalHistoryPages = Math.max(1, Math.ceil(groupedHistory.length / HISTORY_ITEMS_PER_PAGE));
-  const paginatedHistory = useMemo(() => {
-    const start = (historyPage - 1) * HISTORY_ITEMS_PER_PAGE;
-    return groupedHistory.slice(start, start + HISTORY_ITEMS_PER_PAGE);
-  }, [groupedHistory, historyPage]);
+  const totalHistoryPages = Math.max(1, Math.ceil(totalHistory / HISTORY_ITEMS_PER_PAGE));
 
   useEffect(() => {
-    if (historyPage > totalHistoryPages) {
-      setHistoryPage(totalHistoryPages);
+    let cancelled = false;
+
+    async function loadHistory() {
+      try {
+        setLoading(true);
+        setHistory([]);
+
+        const { workouts, total } = await getWorkoutHistoryPage({
+          limit: HISTORY_ITEMS_PER_PAGE,
+          offset: (historyPage - 1) * HISTORY_ITEMS_PER_PAGE,
+        });
+
+        if (cancelled) return;
+
+        const nextTotalPages = Math.max(1, Math.ceil(total / HISTORY_ITEMS_PER_PAGE));
+        setTotalHistory(total);
+
+        if (historyPage > nextTotalPages) {
+          setHistoryPage(nextTotalPages);
+          return;
+        }
+
+        setHistory(workouts);
+      } catch (error) {
+        if (cancelled) return;
+        showToast(error.message, "error");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }, [historyPage, totalHistoryPages]);
 
-  useEffect(() => {
     loadHistory();
-  }, []);
 
-  async function loadHistory() {
-    try {
-      setLoading(true);
-      const data = await getWorkoutHistory();
-      setHistory(data);
-    } catch (error) {
-      showToast(error.message, "error");
-    } finally {
-      setLoading(false);
-    }
+    return () => {
+      cancelled = true;
+    };
+  }, [historyPage, reloadKey, showToast]);
+
+  function reloadHistory() {
+    setReloadKey((current) => current + 1);
   }
 
   function startEditExercise(item) {
@@ -120,7 +141,7 @@ export default function HistoryPage() {
       await updateWorkoutExercise(editingExerciseId, editExerciseState.sets);
       showToast("Ejercicio actualizado", "success");
       cancelEdit();
-      await loadHistory();
+      reloadHistory();
     } catch (error) {
       showToast(error.message, "error");
     }
@@ -134,9 +155,40 @@ export default function HistoryPage() {
       await deleteWorkoutExercise(item.id);
       showToast("Ejercicio borrado", "success");
       if (editingExerciseId === item.id) cancelEdit();
-      await loadHistory();
+      reloadHistory();
     } catch (error) {
       showToast(error.message, "error");
+    }
+  }
+
+  function handleMoveExercise(group, itemIndex, direction) {
+    const targetIndex = itemIndex + direction;
+    if (targetIndex < 0 || targetIndex >= group.exercises.length) return;
+
+    const item = group.exercises[itemIndex];
+    const target = group.exercises[targetIndex];
+
+    setPendingMove({
+      item,
+      target,
+      itemName: item.exercises?.name ?? "este ejercicio",
+      position: targetIndex + 1,
+    });
+  }
+
+  async function handleConfirmMove() {
+    if (!pendingMove) return;
+
+    const { item, target } = pendingMove;
+    setPendingMove(null);
+
+    try {
+      await swapWorkoutExerciseOrder(item.id, item.exercise_order, target.id, target.exercise_order);
+      showToast("Orden actualizado", "success");
+      reloadHistory();
+    } catch (error) {
+      showToast(error.message, "error");
+      reloadHistory();
     }
   }
 
@@ -148,9 +200,13 @@ export default function HistoryPage() {
         </div>
       </section>
 
-      {groupedHistory.length === 0 && <p className="empty">Todavía no tienes entrenamientos guardados.</p>}
+      {loading && <p className="empty">Cargando historial...</p>}
 
-      {paginatedHistory.map((group) => (
+      {!loading && groupedHistory.length === 0 && (
+        <p className="empty">Todavía no tienes entrenamientos guardados.</p>
+      )}
+
+      {!loading && groupedHistory.map((group) => (
         <section className="card history-card" key={group.date}>
           <div className="history-card-header">
             <div>
@@ -160,7 +216,7 @@ export default function HistoryPage() {
           </div>
 
           <div className="history-list">
-            {group.exercises.map((item) => {
+            {group.exercises.map((item, itemIndex) => {
               const isEditing = editingExerciseId === item.id;
 
               return (
@@ -179,6 +235,26 @@ export default function HistoryPage() {
                         </>
                       ) : (
                         <>
+                          <button
+                            type="button"
+                            className="move-icon"
+                            onClick={() => handleMoveExercise(group, itemIndex, -1)}
+                            disabled={itemIndex === 0}
+                            aria-label="Subir ejercicio"
+                            title="Subir ejercicio"
+                          >
+                            <ChevronUp size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="move-icon"
+                            onClick={() => handleMoveExercise(group, itemIndex, 1)}
+                            disabled={itemIndex === group.exercises.length - 1}
+                            aria-label="Bajar ejercicio"
+                            title="Bajar ejercicio"
+                          >
+                            <ChevronDown size={16} />
+                          </button>
                           <button className="secondary-button small-button" onClick={() => startEditExercise(item)}>
                             <Edit3 size={16} /> Editar
                           </button>
@@ -231,7 +307,7 @@ export default function HistoryPage() {
       ))}
 
 
-      {groupedHistory.length > HISTORY_ITEMS_PER_PAGE && (
+      {!loading && totalHistoryPages > 1 && (
         <div className="pagination-controls" aria-label="Paginación historial">
           <button
             className="secondary-button small-button"
@@ -249,6 +325,19 @@ export default function HistoryPage() {
             Siguiente <ChevronRight size={16} />
           </button>
         </div>
+      )}
+
+      {pendingMove && (
+        <ConfirmDialog
+          open={true}
+          onClose={() => setPendingMove(null)}
+          title="Guardar nuevo orden"
+          message={`¿Guardar el nuevo orden? "${pendingMove.itemName}" pasará a la posición ${pendingMove.position} de la sesión.`}
+          actions={[
+            { label: "Guardar", variant: "success", onClick: handleConfirmMove },
+            { label: "Cancelar", variant: "warning", onClick: () => {} },
+          ]}
+        />
       )}
     </div>
   );

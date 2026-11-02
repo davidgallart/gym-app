@@ -140,6 +140,7 @@ for each row execute procedure public.handle_new_user();
 
 create index if not exists idx_exercises_user_id on exercises(user_id);
 create index if not exists idx_workouts_user_date on workouts(user_id, workout_date desc);
+create unique index if not exists idx_workouts_user_date_unique on workouts(user_id, workout_date);
 create index if not exists idx_workout_exercises_workout_id on workout_exercises(workout_id);
 create index if not exists idx_workout_exercises_exercise_id on workout_exercises(exercise_id);
 create index if not exists idx_workout_sets_exercise_id on workout_sets(workout_exercise_id);

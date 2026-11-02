@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
 import { getRecentExerciseSessions } from "../services/workoutService";
-import { formatSessionDate, formatSet, selectTopSets } from "../lib/performance";
+import { formatOrdinal, formatSessionDate, formatSet, selectTopSets } from "../lib/performance";
 import { useToast } from "./ToastProvider";
 import { useRestTimer } from "./RestTimerProvider";
 import ConfirmDialog from "./ConfirmDialog";
@@ -146,7 +146,7 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
       }
     }
 
-    if (restEnabled) startRest(restDuration);
+   if (restEnabled && restRemaining === null) startRest(restDuration);
   }
 
   function changeRestDuration(delta) {
@@ -333,9 +333,18 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
               className={`recent-session${index === 0 ? " recent-session-latest" : ""}`}
               key={session.date}
             >
-              <span className="recent-session-date">
-                {index === 0 ? "Último día" : formatSessionDate(session.date)}
-              </span>
+              <div className="recent-session-header">
+                <span className="recent-session-date">
+                  {index === 0 ? "Último día" : formatSessionDate(session.date)}
+                </span>
+                {session.position && (
+                  <span className="recent-session-order">
+                    {formatOrdinal(session.position.session)}/{session.position.sessionTotal}
+                    {" · "}
+                    {formatOrdinal(session.position.group)}/{session.position.groupTotal}
+                  </span>
+                )}
+              </div>
               <div className="recent-session-sets">
                 {selectTopSets(session.sets).map((set, setIndex) => (
                   <span key={setIndex}>{formatSet(set, setIndex)}</span>

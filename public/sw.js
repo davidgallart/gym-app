@@ -1,4 +1,4 @@
-const CACHE_VERSION = "gym-tracker-v2";
+const CACHE_VERSION = "gym-tracker-v1";
 const APP_SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
