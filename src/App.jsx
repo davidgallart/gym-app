@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { useEffect, useState } from "react";
-import { Dumbbell, History, LineChart, PlusCircle, Scale } from "lucide-react";
+import { History, LineChart, PlusCircle, Scale } from "lucide-react";
 import { getSession, logout, onAuthChange } from "./services/authService";
 import { isSupabaseConfigured } from "./lib/supabaseClient";
 import { RestTimerProvider } from "./components/RestTimerProvider";
@@ -84,12 +84,8 @@ export default function App() {
     <RestTimerProvider>
       <div className="app-shell">
         <header className={`topbar ${hideTopbar ? "topbar-hidden" : ""}`}>
-          <div className="brand">
-            <div className="brand-icon"><Dumbbell size={23} /></div>
-            <div>
-              <h1>Gym Tracker David</h1>
-            </div>
-          </div>
+          <img className="brand-logo" src="/favicon.svg" alt="Logo Web" aria-hidden="true" />
+          <h1>Gym Tracker</h1>
         </header>
 
         <main className="content">

@@ -253,7 +253,7 @@ export default function ProgressPage({ onLogout }) {
         <div className="section-header-row">
           <h2>Progreso</h2>
           {onLogout && (
-            <button className="secondary-button small-button" onClick={onLogout}>
+            <button className="secondary-button small-button danger-button" onClick={onLogout}>
               <LogOut size={16} /> Salir
             </button>
           )}

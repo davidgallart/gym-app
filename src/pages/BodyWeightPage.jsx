@@ -259,7 +259,7 @@ export default function BodyWeightPage() {
                 <X size={18} /> Cancelar
               </button>
             )}
-            <button className="primary-button" disabled={saving}>
+            <button className="primary-button success-button" disabled={saving}>
               <Save size={18} /> {saving ? "Guardando..." : editingLogId ? "Actualizar" : "Guardar"}
             </button>
           </div>

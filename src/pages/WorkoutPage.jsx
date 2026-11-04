@@ -123,21 +123,6 @@ export default function WorkoutPage({ onGoToExercises }) {
 
   return (
     <div className="page">
-      <section className="hero-card compact-hero">
-        <div className="section-header-row">
-          <div>
-            <h2>Nuevo ejercicio</h2>
-          </div>
-          <button className="secondary-button small-button" onClick={onGoToExercises}>
-            <ListPlus size={16} /> Ejercicios
-          </button>
-        </div>
-        <label>
-          Fecha
-          <input type="date" value={workoutDate} onChange={(e) => setWorkoutDate(e.target.value)} />
-        </label>
-      </section>
-
       {exercises.length === 0 && (
         <section className="card empty-workout-card">
           <h3>No tienes ejercicios</h3>
@@ -157,12 +142,15 @@ export default function WorkoutPage({ onGoToExercises }) {
           onRemove={resetCurrentExercise}
           singleMode
           onSaveAndSwitchExercise={handleSaveAndSwitchExercise}
+          workoutDate={workoutDate}
+          onWorkoutDateChange={setWorkoutDate}
+          onGoToExercises={onGoToExercises}
         />
       )}
 
       <div className="sticky-save-bar sticky-save-bar-single">
         
-        <button className="btn primary-button save-button-full" onClick={handleSaveWorkout} disabled={saving || exercises.length === 0}>
+        <button className="btn primary-button success-button save-button-full" onClick={handleSaveWorkout} disabled={saving || exercises.length === 0}>
           <Save size={18} /> {saving ? "Guardando..." : "Guardar ejercicio"}
         </button>
       </div>

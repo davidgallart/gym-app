@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
+import { CalendarDays, ListPlus, Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
 import { getRecentExerciseSessions } from "../services/workoutService";
 import { formatOrdinal, formatSessionDate, formatSet, selectTopSets } from "../lib/performance";
 import { useToast } from "./ToastProvider";
@@ -45,7 +45,18 @@ function getGroupLabel(groupValue) {
   return groupValue === NO_GROUP_VALUE ? NO_GROUP_LABEL : groupValue;
 }
 
-export default function ExerciseRow({ index, item, exercises, onChange, onRemove, singleMode = false, onSaveAndSwitchExercise }) {
+export default function ExerciseRow({
+  index,
+  item,
+  exercises,
+  onChange,
+  onRemove,
+  singleMode = false,
+  onSaveAndSwitchExercise,
+  workoutDate,
+  onWorkoutDateChange,
+  onGoToExercises,
+}) {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
   const [recentSessions, setRecentSessions] = useState([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
@@ -62,9 +73,9 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
   const [restDuration, setRestDuration] = useState(REST_DEFAULT_SECONDS);
   const { restRemaining, startRest, cancelRest } = useRestTimer();
   const prevExerciseIdRef = useRef(item.exerciseId);
+  const dateInputRef = useRef(null);
 
-  // Modal state for unsaved series confirmation
-  const [confirmModal, setConfirmModal] = useState(null); // { type: 'exercise'|'group', nextValue, currentName, onSave, onDiscard }
+  const [confirmModal, setConfirmModal] = useState(null);
 
   const muscleGroups = useMemo(() => {
     return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
@@ -97,9 +108,6 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
     getRecentExerciseSessions(item.exerciseId, 2)
       .then((data) => {
         setRecentSessions(data);
-        if (data.length > 0) {
-          showToast("Marcas cargadas", "success");
-        }
       })
       .catch((error) => {
         setRecentSessions([]);
@@ -112,8 +120,6 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
     const exerciseChanged = prevExerciseIdRef.current !== item.exerciseId;
     prevExerciseIdRef.current = item.exerciseId;
 
-    // Un descanso en marcha solo se cancela si el usuario cambia de ejercicio,
-    // nunca al volver a Entreno (montaje) ni al recargar la lista de ejercicios.
     if (exerciseChanged) {
       cancelRest();
     }
@@ -165,6 +171,21 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
     setRestEnabled(next);
     localStorage.setItem(REST_ENABLED_KEY, next ? "1" : "0");
     if (!next) cancelRest();
+  }
+
+  function openDatePicker() {
+    const input = dateInputRef.current;
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      try {
+        input.showPicker();
+        return;
+      } catch {}
+    }
+
+    input.focus();
+    input.click();
   }
 
   function handleMuscleGroupChange(value) {
@@ -235,14 +256,49 @@ export default function ExerciseRow({ index, item, exercises, onChange, onRemove
     });
   }
 
+  const formattedWorkoutDate = workoutDate ? formatSessionDate(workoutDate) : "sin fecha";
+
   return (
     <>
       <section className="card exercise-card">
       <div className="exercise-header">
         <div>
-          <h3>{singleMode ? "Ejercicio" : `Ejercicio ${index + 1}`}</h3>
+          <h2>Entreno</h2>
         </div>
         <div className="item-actions">
+          {onGoToExercises && (
+            <button
+              type="button"
+              className="exercise-tool-button exercise-tool-button-yellow"
+              onClick={onGoToExercises}
+              title="Ejercicios"
+              aria-label="Ir a ejercicios"
+            >
+              <ListPlus size={18} />
+            </button>
+          )}
+          {workoutDate && onWorkoutDateChange && (
+            <span className="date-tool">
+              <button
+                type="button"
+                className="exercise-tool-button exercise-tool-button-blue"
+                onClick={openDatePicker}
+                title={`Fecha del entrenamiento: ${formattedWorkoutDate}`}
+                aria-label={`Cambiar fecha del entrenamiento: ${formattedWorkoutDate}`}
+              >
+                <CalendarDays size={18} />
+              </button>
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={workoutDate}
+                onChange={(event) => onWorkoutDateChange(event.target.value)}
+                className="date-picker-input"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            </span>
+          )}
           <button
             type="button"
             className={`rest-toggle-button ${restEnabled ? "rest-toggle-on" : ""}`}

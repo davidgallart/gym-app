@@ -138,7 +138,7 @@ export default function ExercisesPage({ onBackToWorkout }) {
                     <input value={editMuscleGroup} onChange={(e) => setEditMuscleGroup(e.target.value)} placeholder="Grupo muscular" />
                     <div className="split-actions">
                       <button className="secondary-button" type="button" onClick={cancelEdit}>Cancelar</button>
-                      <button className="primary-button" type="button" onClick={() => handleUpdateExercise(exercise.id)}>Guardar</button>
+                      <button className="primary-button success-button" type="button" onClick={() => handleUpdateExercise(exercise.id)}>Guardar</button>
                     </div>
                   </div>
                 ) : (

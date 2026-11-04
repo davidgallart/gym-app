@@ -229,7 +229,7 @@ export default function HistoryPage() {
                           <button className="secondary-button small-button" onClick={cancelEdit}>
                             <X size={16} /> Cancelar
                           </button>
-                          <button className="primary-button small-button" onClick={handleSaveExerciseEdit}>
+                          <button className="primary-button success-button small-button" onClick={handleSaveExerciseEdit}>
                             <Save size={16} /> Guardar
                           </button>
                         </>
