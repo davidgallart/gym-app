@@ -74,6 +74,8 @@ export default function ExerciseRow({
   const { restRemaining, startRest, cancelRest } = useRestTimer();
   const prevExerciseIdRef = useRef(item.exerciseId);
   const dateInputRef = useRef(null);
+  const itemRef = useRef(item);
+  const prefilledExerciseRef = useRef(null);
 
   const [confirmModal, setConfirmModal] = useState(null);
 
@@ -98,22 +100,67 @@ export default function ExerciseRow({
   }, [item.exerciseId, exercises]);
 
   useEffect(() => {
+    itemRef.current = item;
+  });
+
+  useEffect(() => {
     if (!item.exerciseId) {
       setRecentSessions([]);
+      prefilledExerciseRef.current = null;
       return;
     }
 
+    let cancelled = false;
     setLoadingRecent(true);
 
     getRecentExerciseSessions(item.exerciseId, 2)
       .then((data) => {
+        if (cancelled) return;
+
         setRecentSessions(data);
+
+        const latestSession = data[0];
+        if (!latestSession || prefilledExerciseRef.current === item.exerciseId) return;
+
+        const current = itemRef.current;
+        if (current.exerciseId !== item.exerciseId) return;
+
+        const hasInput = current.sets.some((set) => set.weight !== "" || set.reps !== "");
+        if (hasInput) {
+          prefilledExerciseRef.current = item.exerciseId;
+          return;
+        }
+
+        const topSets = selectTopSets(latestSession.sets, 2);
+        if (topSets.length === 0) {
+          prefilledExerciseRef.current = item.exerciseId;
+          return;
+        }
+
+        const nextSets = topSets.map((set) => ({
+          weight: String(set.weight),
+          reps: "",
+        }));
+
+        while (nextSets.length < current.sets.length) {
+          nextSets.push({ weight: "", reps: "" });
+        }
+
+        prefilledExerciseRef.current = item.exerciseId;
+        onChange(index, { ...current, sets: nextSets });
       })
       .catch((error) => {
+        if (cancelled) return;
         setRecentSessions([]);
         showToast(error.message, "error");
       })
-      .finally(() => setLoadingRecent(false));
+      .finally(() => {
+        if (!cancelled) setLoadingRecent(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [item.exerciseId, showToast]);
 
   useEffect(() => {
