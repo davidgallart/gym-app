@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Edit3, Save, Trash2, TrendingDown, TrendingUp, Minus, X } from "lucide-react";
 import { useToast } from "../components/ToastProvider";
 import { deleteBodyWeight, getBodyWeightLogs, saveBodyWeight, updateBodyWeight } from "../services/bodyWeightService";
+import { parseIsoDate, toIsoDate } from "../lib/date";
 
 const WEIGHT_LOGS_PER_PAGE = 10;
 const WEEKLY_AVERAGES_PER_PAGE = 5;
@@ -10,24 +11,15 @@ function getToday() {
   return toIsoDate(new Date());
 }
 
-function parseLocalDate(dateString) {
-  const [year, month, day] = dateString.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
 function formatDate(dateString) {
-  return parseLocalDate(dateString).toLocaleDateString("es-ES", {
+  const date = parseIsoDate(dateString);
+  if (!date) return dateString;
+
+  return date.toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
-}
-
-function toIsoDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 function mondayOf(date) {
@@ -41,11 +33,14 @@ function mondayOf(date) {
 
 function buildWeeklyAverages(logs) {
   const grouped = new Map();
-  const today = parseLocalDate(getToday());
+  const today = parseIsoDate(getToday());
   const todayIso = toIsoDate(today);
 
   for (const log of logs) {
-    const monday = mondayOf(parseLocalDate(log.weight_date));
+    const logDate = parseIsoDate(log.weight_date);
+    if (!logDate) continue;
+
+    const monday = mondayOf(logDate);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     const key = toIsoDate(monday);
@@ -64,7 +59,7 @@ function buildWeeklyAverages(logs) {
   return Array.from(grouped.values())
     .map((week) => {
       const avg = week.weights.reduce((sum, value) => sum + value, 0) / week.weights.length;
-      const weekEndDate = parseLocalDate(week.weekEnd);
+      const weekEndDate = parseIsoDate(week.weekEnd);
       const isCurrentWeek = week.weekStart === toIsoDate(mondayOf(today));
       const hasSundayLog = week.dates.includes(week.weekEnd);
 

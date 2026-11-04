@@ -24,7 +24,7 @@ create table if not exists workouts (
 create table if not exists workout_exercises (
     id uuid primary key default gen_random_uuid(),
     workout_id uuid not null references workouts(id) on delete cascade,
-    exercise_id uuid not null references exercises(id) on delete cascade,
+    exercise_id uuid not null references exercises(id) on delete restrict,
     exercise_order int not null default 1
 );
 

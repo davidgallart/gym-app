@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { isIsoDate } from "../lib/date";
 
 const POSITION_CHUNK_SIZE = 50;
 
@@ -10,6 +11,10 @@ async function currentUserId() {
 }
 
 export async function saveWorkout({ workoutDate, exercises }) {
+  if (!isIsoDate(workoutDate)) {
+    throw new Error("La fecha del entrenamiento no es válida");
+  }
+
   const userId = await currentUserId();
 
   const validExercises = exercises.filter(
@@ -108,6 +113,10 @@ export async function getWorkoutHistory() {
 }
 
 export async function updateWorkout(workoutId, editState) {
+  if (!isIsoDate(editState.workoutDate)) {
+    throw new Error("La fecha del entrenamiento no es válida");
+  }
+
   const { error: workoutError } = await supabase
     .from("workouts")
     .update({ workout_date: editState.workoutDate })
@@ -224,7 +233,7 @@ function mapExerciseSessionRows(rows) {
   }
 
   return Array.from(byDate.values())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
     .map((session) => ({
       ...session,
       sets: session.sets.sort((a, b) => a.set_number - b.set_number),

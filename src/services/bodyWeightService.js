@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { isIsoDate } from "../lib/date";
 
 async function currentUserId() {
   const { data, error } = await supabase.auth.getUser();
@@ -21,6 +22,7 @@ function validateBodyWeightInput({ weightDate, weight }) {
   const numericWeight = Number(weight);
 
   if (!weightDate) throw new Error("Selecciona una fecha");
+  if (!isIsoDate(weightDate)) throw new Error("La fecha no es válida");
   if (!Number.isFinite(numericWeight) || numericWeight <= 0) {
     throw new Error("Introduce un peso válido");
   }

@@ -5,6 +5,7 @@ import ExerciseRow from "../components/ExerciseRow";
 import { useToast } from "../components/ToastProvider";
 import { getExercises } from "../services/exerciseService";
 import { saveWorkout } from "../services/workoutService";
+import { toIsoDate } from "../lib/date";
 
 const DRAFT_KEY = "gym-current-exercise-draft";
 const DRAFT_TTL_MS = 2 * 60 * 60 * 1000;
@@ -16,10 +17,6 @@ function emptyExercise() {
       { weight: "", reps: "" },
     ],
   };
-}
-
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function loadDraft() {
@@ -56,7 +53,7 @@ function saveDraft(workoutDate, exercise) {
 export default function WorkoutPage({ onGoToExercises }) {
   const draft = loadDraft();
   const [exercises, setExercises] = useState([]);
-  const [workoutDate, setWorkoutDate] = useState(draft?.workoutDate || getToday());
+  const [workoutDate, setWorkoutDate] = useState(draft?.workoutDate || toIsoDate());
   const [currentExercise, setCurrentExercise] = useState(draft?.exercise || emptyExercise());
   const [saving, setSaving] = useState(false);
   const firstDraftWrite = useRef(true);

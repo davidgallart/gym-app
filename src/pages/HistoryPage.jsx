@@ -4,9 +4,13 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, Save, Trash2,
 import { deleteWorkoutExercise, getWorkoutHistoryPage, swapWorkoutExerciseOrder, updateWorkoutExercise } from "../services/workoutService";
 import { useToast } from "../components/ToastProvider";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { parseIsoDate } from "../lib/date";
 
-function formatDate(date) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString("es-ES");
+function formatDate(dateString) {
+  const date = parseIsoDate(dateString);
+  if (!date) return dateString;
+
+  return date.toLocaleDateString("es-ES");
 }
 
 function buildExerciseEditState(item) {
@@ -57,7 +61,7 @@ function groupHistoryByDate(history) {
         return (a.exercise_order ?? 0) - (b.exercise_order ?? 0);
       }),
     }))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 }
 
 export default function HistoryPage() {

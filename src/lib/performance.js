@@ -1,3 +1,5 @@
+import { isIsoDate } from "./date";
+
 const MAX_SETS_PER_DAY = 3;
 const REP_BONUS_FACTOR = 40;
 const GROUP_DROP = 0.02;
@@ -27,8 +29,9 @@ export function selectTopSets(sets, max = 3) {
 
 export function formatSessionDate(dateStr) {
   if (!dateStr) return "";
+  if (!isIsoDate(dateStr)) return String(dateStr);
+
   const [year, month, day] = String(dateStr).split("-");
-  if (!year || !month || !day) return dateStr;
   return `${day}/${month}/${year}`;
 }
 
