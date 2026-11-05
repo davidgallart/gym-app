@@ -1,11 +1,18 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Edit3, Save, Trash2, TrendingDown, TrendingUp, Minus, X } from "lucide-react";
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, Edit3, Save, Trash2, TrendingDown, TrendingUp, Minus, X } from "lucide-react";
 import { useToast } from "../components/ToastProvider";
 import { deleteBodyWeight, getBodyWeightLogs, saveBodyWeight, updateBodyWeight } from "../services/bodyWeightService";
-import { parseIsoDate, toIsoDate } from "../lib/date";
+import { monthsAgoIsoDate, parseIsoDate, toIsoDate } from "../lib/date";
 
 const WEIGHT_LOGS_PER_PAGE = 10;
 const WEEKLY_AVERAGES_PER_PAGE = 5;
+const CHART_RANGE_OPTIONS = [
+  { value: "all", label: "Todo" },
+  { value: "1", label: "1 mes" },
+  { value: "2", label: "2 meses" },
+  { value: "3", label: "3 meses" },
+  { value: "4", label: "4 meses" },
+];
 
 function getToday() {
   return toIsoDate(new Date());
@@ -113,6 +120,8 @@ export default function BodyWeightPage() {
   const [saving, setSaving] = useState(false);
   const [weightLogsPage, setWeightLogsPage] = useState(1);
   const [weeklyAveragesPage, setWeeklyAveragesPage] = useState(1);
+  const [chartRange, setChartRange] = useState("all");
+  const dateInputRef = useRef(null);
   const { showToast } = useToast();
 
   const sortedLogs = useMemo(() => {
@@ -125,6 +134,12 @@ export default function BodyWeightPage() {
   }, [sortedLogs, weightLogsPage]);
 
   const weeklyAverages = useMemo(() => buildWeeklyAverages(logs), [logs]);
+  const chartWeeklyAverages = useMemo(() => {
+    if (chartRange === "all") return weeklyAverages;
+
+    const cutoff = monthsAgoIsoDate(Number(chartRange));
+    return weeklyAverages.filter((week) => week.weekStart >= cutoff);
+  }, [weeklyAverages, chartRange]);
   const sortedWeeklyAverages = useMemo(() => {
     return weeklyAverages.slice().sort((a, b) => b.weekStart.localeCompare(a.weekStart));
   }, [weeklyAverages]);
@@ -172,6 +187,21 @@ export default function BodyWeightPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function openDatePicker() {
+    const input = dateInputRef.current;
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      try {
+        input.showPicker();
+        return;
+      } catch {}
+    }
+
+    input.focus();
+    input.click();
   }
 
   function resetForm() {
@@ -233,10 +263,32 @@ export default function BodyWeightPage() {
       <section className="card">
         <h3>{editingLogId ? "Modificar peso" : "Apuntar peso diario"}</h3>
         <form className="inline-form bodyweight-form" onSubmit={handleSave}>
-          <label>
-            Fecha
-            <input type="date" value={weightDate} onChange={(e) => setWeightDate(e.target.value)} />
-          </label>
+          <div className="bodyweight-date-field">
+            <span>Fecha</span>
+            <span className="bodyweight-date-control">
+              <span className="date-tool">
+                <button
+                  type="button"
+                  className="exercise-tool-button exercise-tool-button-blue"
+                  onClick={openDatePicker}
+                  title={`Fecha del peso: ${formatDate(weightDate)}`}
+                  aria-label={`Cambiar fecha del peso: ${formatDate(weightDate)}`}
+                >
+                  <CalendarDays size={18} />
+                </button>
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  value={weightDate}
+                  onChange={(e) => setWeightDate(e.target.value)}
+                  className="date-picker-input"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                />
+              </span>
+              <strong>{formatDate(weightDate)}</strong>
+            </span>
+          </div>
           <label>
             Peso
             <input
@@ -326,16 +378,30 @@ export default function BodyWeightPage() {
       </section>
 
       <section className="card chart-card">
-        <h3>Gráfica de medias</h3>
+        <div className="section-header-row">
+          <h3>Gráfica de medias</h3>
+          {weeklyAverages.length > 0 && (
+            <label className="chart-window">
+              Rango
+              <select value={chartRange} onChange={(e) => setChartRange(e.target.value)}>
+                {CHART_RANGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
         <div className="chart-legend-note">
           <span><i className="legend-dot final"></i>Semana cerrada</span>
           <span><i className="legend-dot provisional"></i>Semana actual provisional</span>
         </div>
         {weeklyAverages.length === 0 ? (
           <p className="empty">Guarda pesos diarios para ver la evolución semanal.</p>
+        ) : chartWeeklyAverages.length === 0 ? (
+          <p className="empty">No hay datos en este rango.</p>
         ) : (
           <Suspense fallback={<p className="empty">Cargando gráfica...</p>}>
-            <WeeklyWeightChart data={weeklyAverages} />
+            <WeeklyWeightChart data={chartWeeklyAverages} />
           </Suspense>
         )}
       </section>

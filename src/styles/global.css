@@ -555,6 +555,10 @@ select:focus {
   color: var(--text) !important;
 }
 
+.chart-card .section-header-row {
+  flex-wrap: wrap;
+}
+
 .chart-header-controls {
   display: flex;
   align-items: center;
@@ -803,6 +807,25 @@ select:focus {
 /* Ajustes finales: mobile-first, peso corporal y menú limpio */
 .bodyweight-form {
   align-items: end;
+}
+
+.bodyweight-date-field {
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 750;
+  font-size: 15px;
+}
+
+.bodyweight-date-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+}
+
+.bodyweight-date-control strong {
+  font-size: 15px;
 }
 
 .weight-summary-grid {

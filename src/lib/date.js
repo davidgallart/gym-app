@@ -30,3 +30,10 @@ export function parseIsoDate(value) {
 export function isIsoDate(value) {
   return parseIsoDate(value) !== null;
 }
+
+export function monthsAgoIsoDate(months, from = new Date()) {
+  const target = new Date(from.getFullYear(), from.getMonth() - months, 1);
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(from.getDate(), lastDay));
+  return toIsoDate(target);
+}

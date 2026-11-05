@@ -229,14 +229,22 @@ async function fetchExerciseSessions(exerciseId) {
   );
 }
 
-export async function getExerciseSessionsPage(exerciseId, { limit = 20, offset = 0 } = {}) {
+export async function getExerciseSessionsPage(
+  exerciseId,
+  { limit = 20, offset = 0, since } = {}
+) {
   if (!exerciseId) return { sessions: [], hasMore: false };
 
   let workoutQuery = supabase
     .from("workouts")
     .select("id, workout_date, workout_exercises!inner(id)")
-    .eq("workout_exercises.exercise_id", exerciseId)
-    .order("workout_date", { ascending: false });
+    .eq("workout_exercises.exercise_id", exerciseId);
+
+  if (since) {
+    workoutQuery = workoutQuery.gte("workout_date", since);
+  }
+
+  workoutQuery = workoutQuery.order("workout_date", { ascending: false });
 
   if (limit) {
     workoutQuery = workoutQuery.range(offset, offset + limit - 1);

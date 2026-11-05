@@ -14,18 +14,37 @@ import {
   getTrendSeries,
   selectTopSets,
 } from "../lib/performance";
+import { monthsAgoIsoDate } from "../lib/date";
 
 const NO_GROUP_VALUE = "__NO_GROUP__";
 const NO_GROUP_LABEL = "Sin grupo muscular";
 const RECENT_SESSIONS = 4;
 const CHART_BLOCK_SIZE = 20;
-const WINDOW_OPTIONS = [4, 8, 12, 20];
+const SESSION_WINDOW_OPTIONS = [4, 8, 12, 20];
+const MONTH_WINDOW_OPTIONS = [1, 2, 3, 4];
 
 const TREND_LABELS = {
   improving: "Mejorando",
   declining: "Empeorando",
   maintaining: "Manteniendo",
 };
+
+function isMonthWindow(value) {
+  return typeof value === "string" && value.endsWith("m");
+}
+
+function getMonthWindowCount(value) {
+  return Number(value.slice(0, -1));
+}
+
+function getWindowLabel(windowSize) {
+  if (windowSize === "all") return "de todo el historial";
+  if (isMonthWindow(windowSize)) {
+    const months = getMonthWindowCount(windowSize);
+    return months === 1 ? "del último mes" : `de los últimos ${months} meses`;
+  }
+  return `de las últimas ${windowSize} sesiones`;
+}
 
 const ExerciseTrendChart = lazy(() => import("../components/charts/ExerciseTrendChart"));
 
@@ -71,7 +90,7 @@ export default function ProgressPage({ onLogout }) {
 
   const chartSeries = useMemo(() => getTrendSeries(chartSessions), [chartSessions]);
   const chartTrend = useMemo(() => getPerformanceTrend(chartSessions), [chartSessions]);
-  const windowLabel = windowSize === "all" ? "todo el historial" : `las últimas ${windowSize} sesiones`;
+  const windowLabel = getWindowLabel(windowSize);
 
   useEffect(() => {
     getExercises()
@@ -178,7 +197,10 @@ export default function ProgressPage({ onLogout }) {
     }
 
     const exerciseId = selectedExerciseId;
-    const cacheKey = `${exerciseId}:${windowSize}`;
+    const since = isMonthWindow(windowSize)
+      ? monthsAgoIsoDate(getMonthWindowCount(windowSize))
+      : undefined;
+    const cacheKey = `${exerciseId}:${windowSize}${since ? `:${since}` : ""}`;
     const cached = chartCacheRef.current.get(cacheKey);
 
     if (cached) {
@@ -193,7 +215,7 @@ export default function ProgressPage({ onLogout }) {
 
     const load = async () => {
       try {
-        if (windowSize === "all") {
+        if (windowSize === "all" || since) {
           let offset = 0;
           let accumulated = [];
 
@@ -201,6 +223,7 @@ export default function ProgressPage({ onLogout }) {
             const { sessions, hasMore } = await getExerciseSessionsPage(exerciseId, {
               limit: CHART_BLOCK_SIZE,
               offset,
+              since,
             });
 
             if (cancelled) return;
@@ -370,17 +393,26 @@ export default function ProgressPage({ onLogout }) {
           <h3>Tendencia</h3>
           <div className="chart-header-controls">
             {chartVisible && chartTrend && (
-              <span className={`trend-badge ${chartTrend}`} title={`Tendencia de ${windowLabel}`}>
+              <span className={`trend-badge ${chartTrend}`} title={`Tendencia ${windowLabel}`}>
                 {TREND_LABELS[chartTrend]}
               </span>
             )}
-            {chartVisible && chartSessions.length >= 2 && (
+            {chartVisible && (
               <label className="chart-window">
-                <span>Ventana</span>
+                <span>Rango</span>
                 <select value={windowSize} onChange={(e) => setWindowSize(e.target.value)}>
-                  {WINDOW_OPTIONS.map((size) => (
-                    <option key={size} value={size}>Últimas {size}</option>
-                  ))}
+                  <optgroup label="Sesiones">
+                    {SESSION_WINDOW_OPTIONS.map((size) => (
+                      <option key={size} value={size}>Últimas {size} sesiones</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Tiempo">
+                    {MONTH_WINDOW_OPTIONS.map((months) => (
+                      <option key={`${months}m`} value={`${months}m`}>
+                        {months === 1 ? "Último mes" : `Últimos ${months} meses`}
+                      </option>
+                    ))}
+                  </optgroup>
                   <option value="all">Todo</option>
                 </select>
               </label>
@@ -402,7 +434,9 @@ export default function ProgressPage({ onLogout }) {
           <p className="empty">
             {chartLoading
               ? "Cargando gráfico..."
-              : "Necesitas al menos 2 sesiones para ver la tendencia."}
+              : isMonthWindow(windowSize)
+                ? "No hay suficientes sesiones en este rango."
+                : "Necesitas al menos 2 sesiones para ver la tendencia."}
           </p>
         )}
 
