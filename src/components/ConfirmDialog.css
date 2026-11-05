@@ -49,6 +49,7 @@
 }
 
 .confirm-dialog-close {
+  margin-left: auto;
   background: none;
   border: none;
   color: var(--text-muted, #888);
@@ -77,12 +78,21 @@
   font-size: 0.95rem;
 }
 
+
 .confirm-dialog-footer {
   display: flex;
   gap: 12px;
   padding: 16px 20px;
   border-top: 1px solid var(--border-color, #333);
   justify-content: flex-end;
+}
+
+.confirm-dialog-footer.close-only {
+  justify-content: center;
+}
+
+.confirm-dialog-footer .confirm-dialog-close {
+  margin-left: 0;
 }
 
 /* Button variants for modal actions */

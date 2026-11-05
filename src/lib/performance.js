@@ -9,6 +9,9 @@ const MIN_EXPECTED_RATIO = 0.6;
 const FLAT_BAND = 0.02;
 const STRONG_RECENT = 0.05;
 
+export const PERFORMANCE_INFO = "El Rendimiento ajustado es un índice por sesión y ejercicio que puntúa hasta 3 series según peso y repeticiones, las ajusta por la fatiga de ejercicios previos y muestra su evolución en la gráfica. No usa peso corporal, RPE, descanso ni calentamiento.";
+
+
 const SYNERGY_GROUPS = {
   pecho: ["hombro", "triceps"],
   hombro: ["pecho", "triceps"],

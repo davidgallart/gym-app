@@ -1083,6 +1083,12 @@ select:focus {
   border-color: rgba(59, 130, 246, 0.3);
 }
 
+.exercise-tool-button-gray {
+  color: #d4d4d8;
+  background: rgba(161, 161, 170, 0.14);
+  border-color: rgba(161, 161, 170, 0.3);
+}
+
 .exercise-tool-button-yellow {
   color: #fbbf24;
   background: rgba(245, 158, 11, 0.14);

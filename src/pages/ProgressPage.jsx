@@ -1,12 +1,14 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
-import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Info, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { getExercises } from "../services/exerciseService";
+import ConfirmDialog from "../components/ConfirmDialog";
 import {
   attachSessionPositions,
   getExerciseSessions,
   getExerciseSessionsPage,
 } from "../services/workoutService";
 import {
+  PERFORMANCE_INFO,
   formatOrdinal,
   formatSessionDate,
   formatSet,
@@ -70,6 +72,7 @@ export default function ProgressPage({ onLogout }) {
   const [chartSessions, setChartSessions] = useState([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [windowSize, setWindowSize] = useState(8);
+  const [infoOpen, setInfoOpen] = useState(false);
   const chartCacheRef = useRef(new Map());
 
   const muscleGroups = useMemo(() => {
@@ -392,6 +395,16 @@ export default function ProgressPage({ onLogout }) {
         <div className="section-header-row">
           <h3>Tendencia</h3>
           <div className="chart-header-controls">
+            <button
+              type="button"
+              className="exercise-tool-button exercise-tool-button-gray"
+              onClick={() => setInfoOpen(true)}
+              aria-haspopup="dialog"
+              title="Qué es el Rendimiento ajustado"
+              aria-label="Qué es el Rendimiento ajustado"
+            >
+              <Info size={18} />
+            </button>
             {chartVisible && chartTrend && (
               <span className={`trend-badge ${chartTrend}`} title={`Tendencia ${windowLabel}`}>
                 {TREND_LABELS[chartTrend]}
@@ -457,6 +470,12 @@ export default function ProgressPage({ onLogout }) {
           </>
         )}
       </section>
+
+      <ConfirmDialog
+        open={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        message={PERFORMANCE_INFO}
+      />
     </div>
   );
 }

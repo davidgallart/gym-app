@@ -74,46 +74,63 @@ export default function ConfirmDialog({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
+        aria-labelledby={title ? "confirm-dialog-title" : undefined}
+        aria-label={title ? undefined : "Información"}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="confirm-dialog-header">
-          <h3 id="confirm-dialog-title">{title}</h3>
-          <button
-            className="confirm-dialog-close"
-            onClick={onClose}
-            aria-label="Cerrar"
-            type="button"
-          >
-            <X size={20} />
-          </button>
-        </div>
+        {title && (
+          <div className="confirm-dialog-header">
+            <h3 id="confirm-dialog-title">{title}</h3>
+            <button
+              className="confirm-dialog-close"
+              onClick={onClose}
+              aria-label="Cerrar"
+              type="button"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        )}
         <div className="confirm-dialog-body">
           <p>{message}</p>
         </div>
-        <div className="confirm-dialog-footer">
-          {actions.map((action, i) => {
-            const variantClass = {
-              success: "btn-success",
-              danger: "btn-danger",
-              warning: "btn-warning",
-            }[action.variant] || "btn-primary";
-            return (
-              <button
-                key={i}
-                type="button"
-                className={`btn ${variantClass}`}
-                onClick={() => {
-                  action.onClick?.();
-                  onClose();
-                }}
-                disabled={action.disabled}
-              >
-                {action.label}
-              </button>
-            );
-          })}
-        </div>
+        {actions.length > 0 && (
+          <div className="confirm-dialog-footer">
+            {actions.map((action, i) => {
+              const variantClass = {
+                success: "btn-success",
+                danger: "btn-danger",
+                warning: "btn-warning",
+              }[action.variant] || "btn-primary";
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  className={`btn ${variantClass}`}
+                  onClick={() => {
+                    action.onClick?.();
+                    onClose();
+                  }}
+                  disabled={action.disabled}
+                >
+                  {action.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {!title && actions.length === 0 && (
+          <div className="confirm-dialog-footer close-only">
+            <button
+              className="confirm-dialog-close"
+              onClick={onClose}
+              aria-label="Cerrar"
+              type="button"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
