@@ -119,21 +119,28 @@ export default function ExerciseRow({
 
         setRecentSessions(data);
 
-        const latestSession = data[0];
-        if (!latestSession || prefilledExerciseRef.current === item.exerciseId) return;
+        if (prefilledExerciseRef.current === item.exerciseId) return;
 
         const current = itemRef.current;
         if (current.exerciseId !== item.exerciseId) return;
 
-        const hasInput = current.sets.some((set) => set.weight !== "" || set.reps !== "");
-        if (hasInput) {
+        const hasReps = current.sets.some((set) => set.reps !== "");
+        if (hasReps) {
           prefilledExerciseRef.current = item.exerciseId;
           return;
         }
 
-        const topSets = selectTopSets(latestSession.sets, 2);
+        const latestSession = data[0];
+        const topSets = latestSession ? selectTopSets(latestSession.sets, 2) : [];
         if (topSets.length === 0) {
           prefilledExerciseRef.current = item.exerciseId;
+          const hasWeights = current.sets.some((set) => set.weight !== "");
+          if (hasWeights) {
+            onChange(index, {
+              ...current,
+              sets: current.sets.map(() => ({ weight: "", reps: "" })),
+            });
+          }
           return;
         }
 

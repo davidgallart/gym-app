@@ -107,42 +107,6 @@ export async function getWorkoutHistoryPage({ limit = 5, offset = 0 } = {}) {
   return { workouts: data ?? [], total: count ?? 0 };
 }
 
-export async function getWorkoutHistory() {
-  const { workouts } = await getWorkoutHistoryPage({ limit: 80, offset: 0 });
-  return workouts;
-}
-
-export async function updateWorkout(workoutId, editState) {
-  if (!isIsoDate(editState.workoutDate)) {
-    throw new Error("La fecha del entrenamiento no es válida");
-  }
-
-  const { error: workoutError } = await supabase
-    .from("workouts")
-    .update({ workout_date: editState.workoutDate })
-    .eq("id", workoutId);
-
-  if (workoutError) throw workoutError;
-
-  const sets = editState.exercises.flatMap((exercise) => exercise.sets);
-
-  for (const set of sets) {
-    const reps = Number(set.reps);
-    const weight = Number(set.weight);
-
-    if (!Number.isFinite(reps) || !Number.isFinite(weight)) {
-      throw new Error("Peso y repeticiones deben ser números válidos");
-    }
-
-    const { error } = await supabase
-      .from("workout_sets")
-      .update({ reps, weight })
-      .eq("id", set.id);
-
-    if (error) throw error;
-  }
-}
-
 export async function updateWorkoutExercise(workoutExerciseId, sets) {
   for (const set of sets) {
     const reps = Number(set.reps);

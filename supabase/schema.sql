@@ -86,6 +86,12 @@ using (
         where workouts.id = workout_exercises.workout_id
         and workouts.user_id = auth.uid()
     )
+    and exists (
+        select 1
+        from exercises
+        where exercises.id = workout_exercises.exercise_id
+        and exercises.user_id = auth.uid()
+    )
 )
 with check (
     exists (
@@ -93,6 +99,12 @@ with check (
         from workouts
         where workouts.id = workout_exercises.workout_id
         and workouts.user_id = auth.uid()
+    )
+    and exists (
+        select 1
+        from exercises
+        where exercises.id = workout_exercises.exercise_id
+        and exercises.user_id = auth.uid()
     )
 );
 
@@ -105,8 +117,10 @@ using (
         select 1
         from workout_exercises we
         join workouts w on w.id = we.workout_id
+        join exercises e on e.id = we.exercise_id
         where we.id = workout_sets.workout_exercise_id
         and w.user_id = auth.uid()
+        and e.user_id = auth.uid()
     )
 )
 with check (
@@ -114,8 +128,10 @@ with check (
         select 1
         from workout_exercises we
         join workouts w on w.id = we.workout_id
+        join exercises e on e.id = we.exercise_id
         where we.id = workout_sets.workout_exercise_id
         and w.user_id = auth.uid()
+        and e.user_id = auth.uid()
     )
 );
 

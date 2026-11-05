@@ -49,35 +49,3 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
-
-
-self.addEventListener("push", (event) => {
-  const title = "Descanso terminado";
-  const options = {
-    body: "¡Toca seguir con la siguiente serie!",
-    vibrate: [200, 80, 200],
-    tag: "rest-end",
-    renotify: true,
-    requireInteraction: true,
-    data: { url: "/" },
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-
-  const urlToOpen = new URL(event.notification.data?.url || "/", self.location.origin).href;
-
-  event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.startsWith(self.location.origin) && "focus" in client) {
-          return client.focus();
-        }
-      }
-      return self.clients.openWindow(urlToOpen);
-    })
-  );
-});
