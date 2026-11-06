@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, ListPlus, Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
+import { CalendarDays, ListPlus, Minus, Plus, Timer, TimerOff, Trash2 } from "lucide-react";
 import { getRecentExerciseSessions } from "../../shared/api/workoutService";
 import { formatOrdinal, formatSet, selectTopSets } from "../../shared/lib/performance";
 import { formatDisplayDate } from "../../shared/lib/date";
@@ -382,32 +382,20 @@ export default function ExerciseRow({
         </label>
       </div>
 
-      {restEnabled && (
+      {restEnabled && restRemaining === null && (
         <div className="rest-timer-bar">
-          {restRemaining === null ? (
-            <div className="rest-timer-settings">
-              <span className="rest-timer-label">Descanso por serie</span>
-              <div className="rest-timer-controls">
-                <button type="button" className="rest-step-button" onClick={() => changeRestDuration(-REST_STEP_SECONDS)} aria-label="Reducir tiempo de descanso" title="Reducir descanso">
-                  <Minus size={16} />
-                </button>
-                <span className="rest-timer-value">{restDuration}s</span>
-                <button type="button" className="rest-step-button" onClick={() => changeRestDuration(REST_STEP_SECONDS)} aria-label="Aumentar tiempo de descanso" title="Aumentar descanso">
-                  <Plus size={16} />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="rest-timer-counting">
-              <div className="rest-countdown">
-                <span role="timer" className="rest-countdown-number">{restRemaining}</span>
-                <span className="rest-countdown-unit">s</span>
-              </div>
-              <button type="button" className="rest-cancel-button" onClick={cancelRest} aria-label="Cancelar descanso" title="Cancelar descanso">
-                <X size={18} />
+          <div className="rest-timer-settings">
+            <span className="rest-timer-label">Descanso por serie</span>
+            <div className="rest-timer-controls">
+              <button type="button" className="rest-step-button" onClick={() => changeRestDuration(-REST_STEP_SECONDS)} aria-label="Reducir tiempo de descanso" title="Reducir descanso">
+                <Minus size={16} />
+              </button>
+              <span className="rest-timer-value">{restDuration}s</span>
+              <button type="button" className="rest-step-button" onClick={() => changeRestDuration(REST_STEP_SECONDS)} aria-label="Aumentar tiempo de descanso" title="Aumentar descanso">
+                <Plus size={16} />
               </button>
             </div>
-          )}
+          </div>
         </div>
       )}
 

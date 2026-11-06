@@ -247,49 +247,6 @@
   color: var(--text);
 }
 
-.rest-timer-counting {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.rest-countdown {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.rest-countdown-number {
-  font-family: inherit;
-  font-size: 38px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--white);
-}
-
-.rest-countdown-unit {
-  font-family: inherit;
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 16px;
-}
-
-.rest-cancel-button {
-  width: 40px;
-  height: 40px;
-  min-height: 40px;
-  flex: 0 0 auto;
-  border: 1px solid var(--danger-border);
-  border-radius: 13px;
-  background: var(--red-soft);
-  color: var(--danger-text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .recent-sessions {
   display: flex;
   padding: 6px;

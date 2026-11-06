@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { Info, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
-import { getExercises } from "../../shared/api/exerciseService";
+import { getExercisesForPicker } from "../../shared/api/exerciseService";
 import ConfirmDialog from "../../shared/components/ConfirmDialog";
 import {
   attachSessionPositions,
@@ -88,7 +88,7 @@ export default function ProgressPage({ onLogout }) {
   const windowLabel = getWindowLabel(windowSize);
 
   useEffect(() => {
-    getExercises()
+    getExercisesForPicker()
       .then((data) => {
         setExercises(data);
         const firstGroup = data[0] ? getGroupValue(data[0]) : "";

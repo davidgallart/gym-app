@@ -4,6 +4,7 @@ import { History, LineChart, PlusCircle, Scale } from "lucide-react";
 import { getSession, logout, onAuthChange } from "./authService";
 import { isSupabaseConfigured } from "../shared/lib/supabaseClient";
 import { RestTimerProvider } from "../modules/workout/RestTimerProvider";
+import RestTimerOverlay from "../modules/workout/RestTimerOverlay";
 import SetupPage from "./pages/SetupPage";
 import AuthPage from "./pages/AuthPage";
 
@@ -82,6 +83,7 @@ export default function App() {
 
   return (
     <RestTimerProvider>
+      <RestTimerOverlay />
       <div className="app-shell">
         <header className={`topbar ${hideTopbar ? "topbar-hidden" : ""}`}>
           <img className="brand-logo" src="/favicon.svg" alt="Logo Web" aria-hidden="true" />

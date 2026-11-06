@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ListPlus, Save } from "lucide-react";
 import ExerciseRow from "./ExerciseRow";
 import { useToast } from "../../shared/components/ToastProvider";
-import { getExercises } from "../../shared/api/exerciseService";
+import { getExercisesForPicker } from "../../shared/api/exerciseService";
 import { saveWorkout } from "../../shared/api/workoutService";
 import { toIsoDate } from "../../shared/lib/date";
 import "../../styles/modules/workout.css";
@@ -73,12 +73,12 @@ export default function WorkoutPage({ onGoToExercises }) {
     saveDraft(workoutDate, currentExercise);
   }, [workoutDate, currentExercise]);
 
-  async function loadExercises() {
+  async function loadExercises({ silent = false } = {}) {
     try {
-      const data = await getExercises();
+      const data = await getExercisesForPicker();
       setExercises(data);
     } catch (error) {
-      showToast(error.message, "error");
+      if (!silent) showToast(error.message, "error");
     }
   }
 
@@ -97,6 +97,7 @@ export default function WorkoutPage({ onGoToExercises }) {
     try {
       await saveWorkout({ workoutDate, exercises: [currentExercise] });
       resetCurrentExercise();
+      loadExercises({ silent: true });
       showToast("Ejercicio guardado en el entrenamiento de hoy", "success");
     } catch (error) {
       showToast(error.message, "error");
@@ -112,6 +113,7 @@ export default function WorkoutPage({ onGoToExercises }) {
       await saveWorkout({ workoutDate, exercises: [currentExercise] });
       showToast("Ejercicio guardado en el entrenamiento de hoy", "success");
       setCurrentExercise({ ...emptyExercise(), exerciseId: nextExerciseId });
+      loadExercises({ silent: true });
     } catch (error) {
       showToast(error.message, "error");
     } finally {

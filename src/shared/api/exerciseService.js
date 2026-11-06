@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { sortExercisesByLastUsed } from "../lib/exerciseOrdering";
 
 const EXERCISE_CACHE_TTL_MS = 60 * 1000;
 let exercisesCache = null;
@@ -31,6 +32,23 @@ export async function getExercises({ force = false } = {}) {
   exercisesCache = data ?? [];
   exercisesCacheAt = Date.now();
   return exercisesCache;
+}
+
+export async function getExerciseLastUsed() {
+  const { data, error } = await supabase.rpc("get_exercise_last_used");
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getExercisesForPicker() {
+  const exercises = await getExercises();
+
+  try {
+    const lastUsed = await getExerciseLastUsed();
+    return sortExercisesByLastUsed(exercises, lastUsed);
+  } catch {
+    return exercises;
+  }
 }
 
 export async function createExercise({ name, muscleGroup }) {
