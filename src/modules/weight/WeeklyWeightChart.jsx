@@ -6,8 +6,8 @@ function WeeklyAverageDot(props) {
 
   if (cx === undefined || cy === undefined) return null;
 
-  const fill = payload?.isProvisional ? "#fbbf24" : "#ef4444";
-  const stroke = payload?.isProvisional ? "#fff7cc" : "#fecaca";
+  const fill = payload?.isProvisional ? "var(--chart-provisional)" : "var(--chart-score)";
+  const stroke = payload?.isProvisional ? "var(--chart-provisional-ring)" : "var(--chart-score-ring)";
 
   return (
     <circle
@@ -37,6 +37,7 @@ export default function WeeklyWeightChart({ data }) {
         <Line
           type="monotone"
           dataKey="average"
+          stroke="var(--chart-weight-line)"
           strokeWidth={3}
           name="Media semanal"
           dot={<WeeklyAverageDot />}

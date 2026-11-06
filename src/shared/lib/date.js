@@ -31,6 +31,19 @@ export function isIsoDate(value) {
   return parseIsoDate(value) !== null;
 }
 
+export function formatDisplayDate(value) {
+  if (!value) return "";
+
+  const date = parseIsoDate(value);
+  if (!date) return String(value);
+
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 export function monthsAgoIsoDate(months, from = new Date()) {
   const target = new Date(from.getFullYear(), from.getMonth() - months, 1);
   const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();

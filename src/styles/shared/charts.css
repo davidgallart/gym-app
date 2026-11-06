@@ -1,0 +1,109 @@
+.chart-card {
+  min-height: 320px;
+}
+
+.recharts-cartesian-grid line,
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--chart-grid);
+}
+
+.recharts-text {
+  fill: var(--muted);
+}
+
+.recharts-default-tooltip {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  color: var(--text) !important;
+}
+
+.chart-card .section-header-row {
+  flex-wrap: wrap;
+}
+
+.chart-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chart-window {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.chart-window select {
+  width: auto;
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.chart-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chart-tooltip {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.chart-tooltip strong {
+  font-size: 14px;
+}
+
+.chart-tooltip-sets {
+  color: var(--muted);
+}
+
+.chart-legend-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.chart-legend-note span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.legend-dot.final {
+  background: var(--chart-score);
+}
+
+.legend-dot.provisional {
+  background: var(--chart-provisional);
+}
+
+.legend-dot.score {
+  background: var(--chart-score);
+}
+
+.legend-dot.trend {
+  background: var(--chart-trend);
+}

@@ -1,8 +1,8 @@
 import React from "react";
 import { useState } from "react";
 import { Dumbbell } from "lucide-react";
-import { login, register } from "../services/authService";
-import { useToast } from "../components/ToastProvider";
+import { login, register } from "../authService";
+import { useToast } from "../../shared/components/ToastProvider";
 
 export default function AuthPage() {
   const [mode, setMode] = useState("login");

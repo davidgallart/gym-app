@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { playRestEndBell } from "../lib/restTimerSound";
+import { playRestEndBell } from "./restTimerSound";
 
 const RestTimerContext = createContext(null);
 

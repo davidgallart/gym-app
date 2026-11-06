@@ -1,0 +1,227 @@
+input,
+select {
+  font: inherit;
+}
+
+.form,
+.inline-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 750;
+  font-size: 15px;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 15px 15px;
+  background: var(--surface-input);
+  color: var(--text);
+  outline: none;
+  min-height: 52px;
+}
+
+input::placeholder {
+  color: var(--muted-2);
+}
+
+input:focus,
+select:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.primary-button,
+.secondary-button,
+.icon-button,
+.link-button,
+.danger-icon,
+.move-icon,
+.mini-danger-button {
+  border: 0;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 850;
+  min-height: 48px;
+  transition: transform 0.12s ease, background 0.12s ease, border 0.12s ease;
+}
+
+.primary-button:active,
+.secondary-button:active,
+.icon-button:active,
+.danger-icon:active,
+.move-icon:active {
+  transform: scale(0.98);
+}
+
+.primary-button {
+  background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+  color: var(--white);
+  padding: 14px 18px;
+}
+
+.primary-button.success-button {
+  background: var(--save-bg);
+  color: var(--white);
+  border: 1px solid var(--save-border);
+}
+
+.secondary-button {
+  background: var(--panel-strong);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 13px 16px;
+}
+
+.small-button {
+  min-height: 40px;
+  padding: 9px 12px;
+  font-size: 14px;
+}
+
+.icon-button {
+  width: 48px;
+  height: 48px;
+  background: var(--panel-strong);
+  color: var(--text);
+  border: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.link-button {
+  width: 100%;
+  background: transparent;
+  color: var(--danger-text);
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.danger-icon,
+.mini-danger-button,
+.danger-button {
+  background: var(--red-soft);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+
+.danger-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+}
+
+.mini-danger-button {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+}
+
+.move-icon {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  background: var(--panel-soft);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+}
+
+.full-width-button {
+  width: 100%;
+}
+
+.inline-form {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .inline-form {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+}
+
+.form-actions-row {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.form-actions-row .primary-button,
+.form-actions-row .secondary-button {
+  min-height: 48px;
+}
+
+.save-button-full {
+  width: 100%;
+}
+
+.form-actions .save-button-full {
+  width: 100%;
+}
+
+.exercise-tool-button {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.exercise-tool-button:active {
+  transform: scale(0.96);
+}
+
+.exercise-tool-button-blue {
+  color: var(--info-text);
+  background: var(--info-soft);
+  border-color: var(--info-border);
+}
+
+.exercise-tool-button-gray {
+  color: var(--neutral-text);
+  background: var(--neutral-soft);
+  border-color: var(--neutral-border);
+}
+
+.exercise-tool-button-yellow {
+  color: var(--warning-text);
+  background: var(--warning-soft);
+  border-color: var(--warning-border);
+}
+
+.date-tool {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.date-picker-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}

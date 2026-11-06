@@ -1,11 +1,12 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { ListPlus, Save } from "lucide-react";
-import ExerciseRow from "../components/ExerciseRow";
-import { useToast } from "../components/ToastProvider";
-import { getExercises } from "../services/exerciseService";
-import { saveWorkout } from "../services/workoutService";
-import { toIsoDate } from "../lib/date";
+import ExerciseRow from "./ExerciseRow";
+import { useToast } from "../../shared/components/ToastProvider";
+import { getExercises } from "../../shared/api/exerciseService";
+import { saveWorkout } from "../../shared/api/workoutService";
+import { toIsoDate } from "../../shared/lib/date";
+import "../../styles/modules/workout.css";
 
 const DRAFT_KEY = "gym-current-exercise-draft";
 const DRAFT_TTL_MS = 2 * 60 * 60 * 1000;

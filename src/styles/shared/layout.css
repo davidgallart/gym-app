@@ -1,0 +1,82 @@
+.empty {
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.hero-title-row,
+.section-header-row,
+.row-between {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actions-row {
+  display: grid;
+  gap: 10px;
+}
+
+.item-actions,
+.split-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.edit-block,
+.edit-workout {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.empty {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--surface-hover);
+  border: 1px dashed var(--border);
+}
+
+@media (min-width: 640px) {
+  .actions-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.selector-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+@media (min-width: 640px) {
+  .selector-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0 4px;
+  flex-wrap: wrap;
+}
+
+.pagination-controls span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+}

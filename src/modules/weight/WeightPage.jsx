@@ -1,8 +1,9 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Edit3, Save, Trash2, TrendingDown, TrendingUp, Minus, X } from "lucide-react";
-import { useToast } from "../components/ToastProvider";
-import { deleteBodyWeight, getBodyWeightLogs, saveBodyWeight, updateBodyWeight } from "../services/bodyWeightService";
-import { monthsAgoIsoDate, parseIsoDate, toIsoDate } from "../lib/date";
+import { useToast } from "../../shared/components/ToastProvider";
+import { deleteBodyWeight, getBodyWeightLogs, saveBodyWeight, updateBodyWeight } from "./bodyWeightService";
+import { formatDisplayDate, monthsAgoIsoDate, parseIsoDate, toIsoDate } from "../../shared/lib/date";
+import "../../styles/modules/weight.css";
 
 const WEIGHT_LOGS_PER_PAGE = 10;
 const WEEKLY_AVERAGES_PER_PAGE = 5;
@@ -16,17 +17,6 @@ const CHART_RANGE_OPTIONS = [
 
 function getToday() {
   return toIsoDate(new Date());
-}
-
-function formatDate(dateString) {
-  const date = parseIsoDate(dateString);
-  if (!date) return dateString;
-
-  return date.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
 }
 
 function mondayOf(date) {
@@ -78,7 +68,7 @@ function buildWeeklyAverages(logs) {
         ...week,
         average: Number(avg.toFixed(2)),
         count: week.weights.length,
-        label: `${formatDate(week.weekStart)} - ${formatDate(week.weekEnd)}`,
+        label: `${formatDisplayDate(week.weekStart)} - ${formatDisplayDate(week.weekEnd)}`,
         isCurrentWeek,
         isCompleted,
         isProvisional: !isCompleted,
@@ -109,9 +99,9 @@ function TrendBadge({ value }) {
   return <span className="trend-badge neutral"><Minus size={16} /> {formatDiff(value)}</span>;
 }
 
-const WeeklyWeightChart = lazy(() => import("../components/charts/WeeklyWeightChart"));
+const WeeklyWeightChart = lazy(() => import("./WeeklyWeightChart"));
 
-export default function BodyWeightPage() {
+export default function WeightPage() {
   const [logs, setLogs] = useState([]);
   const [weightDate, setWeightDate] = useState(getToday());
   const [weight, setWeight] = useState("");
@@ -271,8 +261,8 @@ export default function BodyWeightPage() {
                   type="button"
                   className="exercise-tool-button exercise-tool-button-blue"
                   onClick={openDatePicker}
-                  title={`Fecha del peso: ${formatDate(weightDate)}`}
-                  aria-label={`Cambiar fecha del peso: ${formatDate(weightDate)}`}
+                  title={`Fecha del peso: ${formatDisplayDate(weightDate)}`}
+                  aria-label={`Cambiar fecha del peso: ${formatDisplayDate(weightDate)}`}
                 >
                   <CalendarDays size={18} />
                 </button>
@@ -286,7 +276,7 @@ export default function BodyWeightPage() {
                   aria-hidden="true"
                 />
               </span>
-              <strong>{formatDate(weightDate)}</strong>
+              <strong>{formatDisplayDate(weightDate)}</strong>
             </span>
           </div>
           <label>
@@ -416,7 +406,7 @@ export default function BodyWeightPage() {
             {paginatedWeightLogs.map((log) => (
               <div className="weight-log-row" key={log.id}>
                 <div>
-                  <strong>{formatDate(log.weight_date)}</strong>
+                  <strong>{formatDisplayDate(log.weight_date)}</strong>
                   <span>{Number(log.weight)} kg</span>
                 </div>
                 <div className="item-actions">

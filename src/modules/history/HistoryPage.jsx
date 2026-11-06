@@ -1,17 +1,11 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, Save, Trash2, X } from "lucide-react";
-import { deleteWorkoutExercise, getWorkoutHistoryPage, swapWorkoutExerciseOrder, updateWorkoutExercise } from "../services/workoutService";
-import { useToast } from "../components/ToastProvider";
-import ConfirmDialog from "../components/ConfirmDialog";
-import { parseIsoDate } from "../lib/date";
-
-function formatDate(dateString) {
-  const date = parseIsoDate(dateString);
-  if (!date) return dateString;
-
-  return date.toLocaleDateString("es-ES");
-}
+import { deleteWorkoutExercise, getWorkoutHistoryPage, swapWorkoutExerciseOrder, updateWorkoutExercise } from "../../shared/api/workoutService";
+import { useToast } from "../../shared/components/ToastProvider";
+import ConfirmDialog from "../../shared/components/ConfirmDialog";
+import { formatDisplayDate } from "../../shared/lib/date";
+import "../../styles/modules/history.css";
 
 function buildExerciseEditState(item) {
   return {
@@ -214,7 +208,7 @@ export default function HistoryPage() {
         <section className="card history-card" key={group.date}>
           <div className="history-card-header">
             <div>
-              <h3>{formatDate(group.date)}</h3>
+              <h3>{formatDisplayDate(group.date)}</h3>
               <p>{group.exercises.length} ejercicios</p>
             </div>
           </div>

@@ -1,18 +1,18 @@
 import React, { Suspense, lazy } from "react";
 import { useEffect, useState } from "react";
 import { History, LineChart, PlusCircle, Scale } from "lucide-react";
-import { getSession, logout, onAuthChange } from "./services/authService";
-import { isSupabaseConfigured } from "./lib/supabaseClient";
-import { RestTimerProvider } from "./components/RestTimerProvider";
+import { getSession, logout, onAuthChange } from "./authService";
+import { isSupabaseConfigured } from "../shared/lib/supabaseClient";
+import { RestTimerProvider } from "../modules/workout/RestTimerProvider";
 import SetupPage from "./pages/SetupPage";
 import AuthPage from "./pages/AuthPage";
 
 
-const WorkoutPage = lazy(() => import("./pages/WorkoutPage"));
-const HistoryPage = lazy(() => import("./pages/HistoryPage"));
-const ProgressPage = lazy(() => import("./pages/ProgressPage"));
-const ExercisesPage = lazy(() => import("./pages/ExercisesPage"));
-const BodyWeightPage = lazy(() => import("./pages/BodyWeightPage"));
+const WorkoutPage = lazy(() => import("../modules/workout/WorkoutPage"));
+const HistoryPage = lazy(() => import("../modules/history/HistoryPage"));
+const ProgressPage = lazy(() => import("../modules/progress/ProgressPage"));
+const ExercisesPage = lazy(() => import("../modules/workout/ExercisesPage"));
+const WeightPage = lazy(() => import("../modules/weight/WeightPage"));
 
 const tabs = [
   { id: "workout", label: "Entreno", icon: PlusCircle },
@@ -93,7 +93,7 @@ export default function App() {
             {activeTab === "workout" && <WorkoutPage onGoToExercises={() => setActiveTab("exercises")} />}
             {activeTab === "exercises" && <ExercisesPage onBackToWorkout={() => setActiveTab("workout")} />}
             {activeTab === "history" && <HistoryPage />}
-            {activeTab === "bodyWeight" && <BodyWeightPage />}
+            {activeTab === "bodyWeight" && <WeightPage />}
             {activeTab === "progress" && <ProgressPage onLogout={handleLogout} />}
           </Suspense>
         </main>

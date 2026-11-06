@@ -1,10 +1,10 @@
 import React from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { formatOrdinal, formatSet } from "../../lib/performance";
+import { formatOrdinal, formatSet } from "../../shared/lib/performance";
 
 function ScoreDot({ cx, cy }) {
   if (cx === undefined || cy === undefined) return null;
-  return <circle cx={cx} cy={cy} r={5} fill="#ef4444" stroke="#fecaca" strokeWidth={2} />;
+  return <circle cx={cx} cy={cy} r={5} fill="var(--chart-score)" stroke="var(--chart-score-ring)" strokeWidth={2} />;
 }
 
 function TrendTooltip({ active, payload }) {
@@ -46,7 +46,7 @@ export default function ExerciseTrendChart({ data }) {
         <Line
           type="monotone"
           dataKey="score"
-          stroke="#ef4444"
+          stroke="var(--chart-score)"
           strokeWidth={3}
           name="Rendimiento ajustado"
           dot={<ScoreDot />}
@@ -55,7 +55,7 @@ export default function ExerciseTrendChart({ data }) {
         <Line
           type="linear"
           dataKey="trendValue"
-          stroke="#a1a1aa"
+          stroke="var(--chart-trend)"
           strokeDasharray="6 4"
           strokeWidth={2}
           name="Tendencia"

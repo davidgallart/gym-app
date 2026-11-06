@@ -1,4 +1,4 @@
-import { isIsoDate } from "./date";
+import { formatDisplayDate } from "./date";
 
 const MAX_SETS_PER_DAY = 3;
 const REP_BONUS_FACTOR = 40;
@@ -28,14 +28,6 @@ export function selectTopSets(sets, max = 3) {
   });
 
   return ordered.slice(0, max).sort((a, b) => a.set_number - b.set_number);
-}
-
-export function formatSessionDate(dateStr) {
-  if (!dateStr) return "";
-  if (!isIsoDate(dateStr)) return String(dateStr);
-
-  const [year, month, day] = String(dateStr).split("-");
-  return `${day}/${month}/${year}`;
 }
 
 export function formatSet(set, index) {
@@ -172,7 +164,7 @@ export function getTrendSeries(sessions) {
     .reverse()
     .map((session) => ({
       date: session.date,
-      label: formatSessionDate(session.date).slice(0, 5),
+      label: formatDisplayDate(session.date).slice(0, 5),
       score: dayScore(session),
       position: session.position ?? null,
       sets: selectTopSets(session.sets ?? [], MAX_SETS_PER_DAY),

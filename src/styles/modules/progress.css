@@ -1,0 +1,63 @@
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.session-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  min-width: 0;
+}
+
+.session-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-card-header strong {
+  color: var(--title-date);
+  font-size: 15px;
+}
+
+.session-card-header span {
+  color: var(--title-date);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.session-card .session-order {
+  margin: 0;
+  color: var(--title-date);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-sets {
+  display: grid;
+  gap: 4px;
+}
+
+.session-set {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .sessions-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

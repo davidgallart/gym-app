@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Dumbbell, Plus, RefreshCw, Trash2 } from "lucide-react";
-import { createExercise, deleteExercise, getExercises, updateExercise } from "../services/exerciseService";
-import { useToast } from "../components/ToastProvider";
+import { createExercise, deleteExercise, getExercises, updateExercise } from "../../shared/api/exerciseService";
+import { getGroupLabel, getGroupValue } from "../../shared/lib/exerciseGroups";
+import { useToast } from "../../shared/components/ToastProvider";
+import "../../styles/modules/workout.css";
 
 export default function ExercisesPage({ onBackToWorkout }) {
   const [exercises, setExercises] = useState([]);
@@ -145,7 +147,7 @@ export default function ExercisesPage({ onBackToWorkout }) {
                   <>
                     <div>
                       <strong>{exercise.name}</strong>
-                      <span>{exercise.muscle_group || "Sin grupo muscular"}</span>
+                      <span>{getGroupLabel(getGroupValue(exercise))}</span>
                     </div>
                     <div className="item-actions">
                       <button className="secondary-button small-button" onClick={() => startEdit(exercise)}>Editar</button>

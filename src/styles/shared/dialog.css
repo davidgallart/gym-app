@@ -1,7 +1,7 @@
 .confirm-dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -12,10 +12,10 @@
 }
 
 .confirm-dialog {
-  background: var(--bg-card, #1e1e1e);
-  border: 1px solid var(--border-color, #333);
+  background: var(--dialog-bg);
+  border: 1px solid var(--dialog-border);
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--dialog-shadow);
   width: 100%;
   max-width: 400px;
   max-height: 90vh;
@@ -38,21 +38,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color, #333);
+  border-bottom: 1px solid var(--dialog-border);
 }
 
 .confirm-dialog-header h3 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary, #fff);
+  color: var(--dialog-text);
 }
 
 .confirm-dialog-close {
   margin-left: auto;
   background: none;
   border: none;
-  color: var(--text-muted, #888);
+  color: var(--dialog-muted);
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
@@ -63,8 +63,8 @@
 }
 
 .confirm-dialog-close:hover {
-  background: var(--bg-hover, #2a2a2a);
-  color: var(--text-primary, #fff);
+  background: var(--dialog-hover);
+  color: var(--dialog-text);
 }
 
 .confirm-dialog-body {
@@ -73,7 +73,7 @@
 
 .confirm-dialog-body p {
   margin: 0;
-  color: var(--text-secondary, #ccc);
+  color: var(--dialog-body);
   line-height: 1.5;
   font-size: 0.95rem;
 }
@@ -83,7 +83,7 @@
   display: flex;
   gap: 12px;
   padding: 16px 20px;
-  border-top: 1px solid var(--border-color, #333);
+  border-top: 1px solid var(--dialog-border);
   justify-content: flex-end;
 }
 
@@ -123,35 +123,35 @@
 
 /* Success - green for "Guardar" */
 .confirm-dialog-footer .btn-success {
-  background: linear-gradient(135deg, #15803d, #166534);
-  color: #09090b;
-  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.35);
+  background: linear-gradient(135deg, var(--dialog-success-from), var(--dialog-success-to));
+  color: var(--dialog-action-text);
+  box-shadow: var(--shadow-dialog-success);
 }
 
 .confirm-dialog-footer .btn-success:hover:not(:disabled) {
-  box-shadow: 0 10px 24px rgba(21, 128, 61, 0.45);
+  box-shadow: var(--shadow-dialog-success-hover);
 }
 
 /* Danger - red for "Descartar" */
 .confirm-dialog-footer .btn-danger {
   background: linear-gradient(135deg, var(--red), var(--red-dark));
-  color: white;
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.28);
+  color: var(--white);
+  box-shadow: var(--shadow-dialog-danger);
 }
 
 .confirm-dialog-footer .btn-danger:hover:not(:disabled) {
-  box-shadow: 0 10px 24px rgba(239, 68, 68, 0.35);
+  box-shadow: var(--shadow-dialog-danger-hover);
 }
 
 /* Warning - yellow/amber for "Cancelar" */
 .confirm-dialog-footer .btn-warning {
-  background: linear-gradient(135deg, var(--warning), #d97706);
-  color: #09090b;
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.28);
+  background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+  color: var(--dialog-action-text);
+  box-shadow: var(--shadow-dialog-warning);
 }
 
 .confirm-dialog-footer .btn-warning:hover:not(:disabled) {
-  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.35);
+  box-shadow: var(--shadow-dialog-warning-hover);
 }
 
 /* Mobile adjustments */

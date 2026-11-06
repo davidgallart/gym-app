@@ -1,14 +1,13 @@
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, ListPlus, Minus, Plus, Timer, TimerOff, Trash2, X } from "lucide-react";
-import { getRecentExerciseSessions } from "../services/workoutService";
-import { formatOrdinal, formatSessionDate, formatSet, selectTopSets } from "../lib/performance";
-import { useToast } from "./ToastProvider";
+import { getRecentExerciseSessions } from "../../shared/api/workoutService";
+import { formatOrdinal, formatSet, selectTopSets } from "../../shared/lib/performance";
+import { formatDisplayDate } from "../../shared/lib/date";
+import { filterExercisesByGroup, getGroupLabel, getGroupValue, getMuscleGroups } from "../../shared/lib/exerciseGroups";
+import { useToast } from "../../shared/components/ToastProvider";
 import { useRestTimer } from "./RestTimerProvider";
-import ConfirmDialog from "./ConfirmDialog";
-
-const NO_GROUP_VALUE = "__NO_GROUP__";
-const NO_GROUP_LABEL = "Sin grupo muscular";
+import ConfirmDialog from "../../shared/components/ConfirmDialog";
 
 const REST_ENABLED_KEY = "gym-rest-enabled";
 const REST_DURATIONS_KEY = "gym-rest-durations";
@@ -35,14 +34,6 @@ function loadRestDurations() {
   } catch {
     return {};
   }
-}
-
-function getGroupValue(exercise) {
-  return exercise.muscle_group?.trim() || NO_GROUP_VALUE;
-}
-
-function getGroupLabel(groupValue) {
-  return groupValue === NO_GROUP_VALUE ? NO_GROUP_LABEL : groupValue;
 }
 
 export default function ExerciseRow({
@@ -79,16 +70,12 @@ export default function ExerciseRow({
 
   const [confirmModal, setConfirmModal] = useState(null);
 
-  const muscleGroups = useMemo(() => {
-    return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
-      getGroupLabel(a).localeCompare(getGroupLabel(b))
-    );
-  }, [exercises]);
+  const muscleGroups = useMemo(() => getMuscleGroups(exercises), [exercises]);
 
-  const filteredExercises = useMemo(() => {
-    if (!selectedMuscleGroup) return [];
-    return exercises.filter((exercise) => getGroupValue(exercise) === selectedMuscleGroup);
-  }, [exercises, selectedMuscleGroup]);
+  const filteredExercises = useMemo(
+    () => filterExercisesByGroup(exercises, selectedMuscleGroup),
+    [exercises, selectedMuscleGroup]
+  );
 
   useEffect(() => {
     if (!item.exerciseId) return;
@@ -310,7 +297,7 @@ export default function ExerciseRow({
     });
   }
 
-  const formattedWorkoutDate = workoutDate ? formatSessionDate(workoutDate) : "sin fecha";
+  const formattedWorkoutDate = workoutDate ? formatDisplayDate(workoutDate) : "sin fecha";
 
   return (
     <>
@@ -445,7 +432,7 @@ export default function ExerciseRow({
             >
               <div className="recent-session-header">
                 <span className="recent-session-date">
-                  {index === 0 ? "Último día" : formatSessionDate(session.date)}
+                  {index === 0 ? "Último día" : formatDisplayDate(session.date)}
                 </span>
                 {session.position && (
                   <span className="recent-session-order">

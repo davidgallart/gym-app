@@ -1,25 +1,29 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { Info, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
-import { getExercises } from "../services/exerciseService";
-import ConfirmDialog from "../components/ConfirmDialog";
+import { getExercises } from "../../shared/api/exerciseService";
+import ConfirmDialog from "../../shared/components/ConfirmDialog";
 import {
   attachSessionPositions,
   getExerciseSessions,
   getExerciseSessionsPage,
-} from "../services/workoutService";
+} from "../../shared/api/workoutService";
 import {
   PERFORMANCE_INFO,
   formatOrdinal,
-  formatSessionDate,
   formatSet,
   getPerformanceTrend,
   getTrendSeries,
   selectTopSets,
-} from "../lib/performance";
-import { monthsAgoIsoDate } from "../lib/date";
+} from "../../shared/lib/performance";
+import { formatDisplayDate, monthsAgoIsoDate } from "../../shared/lib/date";
+import {
+  filterExercisesByGroup,
+  getGroupLabel,
+  getGroupValue,
+  getMuscleGroups,
+} from "../../shared/lib/exerciseGroups";
+import "../../styles/modules/progress.css";
 
-const NO_GROUP_VALUE = "__NO_GROUP__";
-const NO_GROUP_LABEL = "Sin grupo muscular";
 const RECENT_SESSIONS = 4;
 const CHART_BLOCK_SIZE = 20;
 const SESSION_WINDOW_OPTIONS = [4, 8, 12, 20];
@@ -48,15 +52,7 @@ function getWindowLabel(windowSize) {
   return `de las últimas ${windowSize} sesiones`;
 }
 
-const ExerciseTrendChart = lazy(() => import("../components/charts/ExerciseTrendChart"));
-
-function getGroupValue(exercise) {
-  return exercise.muscle_group?.trim() || NO_GROUP_VALUE;
-}
-
-function getGroupLabel(groupValue) {
-  return groupValue === NO_GROUP_VALUE ? NO_GROUP_LABEL : groupValue;
-}
+const ExerciseTrendChart = lazy(() => import("./ExerciseTrendChart"));
 
 export default function ProgressPage({ onLogout }) {
   const [exercises, setExercises] = useState([]);
@@ -75,16 +71,12 @@ export default function ProgressPage({ onLogout }) {
   const [infoOpen, setInfoOpen] = useState(false);
   const chartCacheRef = useRef(new Map());
 
-  const muscleGroups = useMemo(() => {
-    return Array.from(new Set(exercises.map(getGroupValue))).sort((a, b) =>
-      getGroupLabel(a).localeCompare(getGroupLabel(b))
-    );
-  }, [exercises]);
+  const muscleGroups = useMemo(() => getMuscleGroups(exercises), [exercises]);
 
-  const filteredExercises = useMemo(() => {
-    if (!selectedMuscleGroup) return [];
-    return exercises.filter((exercise) => getGroupValue(exercise) === selectedMuscleGroup);
-  }, [exercises, selectedMuscleGroup]);
+  const filteredExercises = useMemo(
+    () => filterExercisesByGroup(exercises, selectedMuscleGroup),
+    [exercises, selectedMuscleGroup]
+  );
 
   const selectedExercise = exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
   const total = rawSessions.length;
@@ -346,7 +338,7 @@ export default function ProgressPage({ onLogout }) {
               <div className="session-card" key={session.date}>
                 <div className="session-card-header">
                   <strong>Día {(page - 1) * RECENT_SESSIONS + index + 1}</strong>
-                  <span>{formatSessionDate(session.date)}</span>
+                  <span>{formatDisplayDate(session.date)}</span>
                 </div>
                 {session.position && (
                   <p
