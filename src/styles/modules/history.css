@@ -50,6 +50,14 @@
   align-items: center;
 }
 
+.history-header {
+  align-items: center;
+}
+
+.history-header h2 {
+  margin: 0;
+}
+
 .history-item-editable {
   display: grid;
   gap: 10px;
@@ -63,8 +71,15 @@
 }
 
 .history-item-top strong {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   padding-top: 8px;
+}
+
+.history-item-top .item-actions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
 }
 
 .edit-exercise-sets {
@@ -74,15 +89,6 @@
 }
 
 @media (max-width: 520px) {
-  .history-item-top {
-    display: grid;
-    gap: 10px;
-  }
-
-  .history-item-top .item-actions {
-    justify-content: flex-start;
-  }
-
   .edit-set-row {
     grid-template-columns: 1fr 1fr;
   }

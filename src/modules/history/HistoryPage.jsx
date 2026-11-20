@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, Save, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, Lock, Save, Trash2, Unlock, X } from "lucide-react";
 import { deleteWorkoutExercise, getWorkoutHistoryPage, swapWorkoutExerciseOrder, updateWorkoutExercise } from "../../shared/api/workoutService";
 import { useToast } from "../../shared/components/ToastProvider";
 import ConfirmDialog from "../../shared/components/ConfirmDialog";
@@ -67,6 +67,7 @@ export default function HistoryPage() {
   const [totalHistory, setTotalHistory] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
   const [pendingMove, setPendingMove] = useState(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const { showToast } = useToast();
 
   const groupedHistory = useMemo(() => groupHistoryByDate(history), [history]);
@@ -123,6 +124,11 @@ export default function HistoryPage() {
   function cancelEdit() {
     setEditingExerciseId(null);
     setEditExerciseState(null);
+  }
+
+  function toggleLock() {
+    if (isUnlocked) cancelEdit();
+    setIsUnlocked((current) => !current);
   }
 
   function updateSet(setIndex, field, value) {
@@ -193,8 +199,18 @@ export default function HistoryPage() {
   return (
     <div className="page">
       <section className="hero-card compact-hero">
-        <div>
+        <div className="hero-title-row history-header">
           <h2>Historial</h2>
+          <button
+            type="button"
+            className={`exercise-tool-button ${isUnlocked ? "exercise-tool-button-blue" : "exercise-tool-button-gray"}`}
+            onClick={toggleLock}
+            aria-pressed={isUnlocked}
+            aria-label={isUnlocked ? "Bloquear edición del historial" : "Desbloquear edición del historial"}
+            title={isUnlocked ? "Bloquear edición" : "Desbloquear edición"}
+          >
+            {isUnlocked ? <Unlock size={18} /> : <Lock size={18} />}
+          </button>
         </div>
       </section>
 
@@ -237,7 +253,7 @@ export default function HistoryPage() {
                             type="button"
                             className="move-icon"
                             onClick={() => handleMoveExercise(group, itemIndex, -1)}
-                            disabled={itemIndex === 0}
+                            disabled={!isUnlocked || itemIndex === 0}
                             aria-label="Subir ejercicio"
                             title="Subir ejercicio"
                           >
@@ -247,16 +263,25 @@ export default function HistoryPage() {
                             type="button"
                             className="move-icon"
                             onClick={() => handleMoveExercise(group, itemIndex, 1)}
-                            disabled={itemIndex === group.exercises.length - 1}
+                            disabled={!isUnlocked || itemIndex === group.exercises.length - 1}
                             aria-label="Bajar ejercicio"
                             title="Bajar ejercicio"
                           >
                             <ChevronDown size={16} />
                           </button>
-                          <button className="secondary-button small-button" onClick={() => startEditExercise(item)}>
+                          <button
+                            className="secondary-button small-button"
+                            onClick={() => startEditExercise(item)}
+                            disabled={!isUnlocked}
+                          >
                             <Edit3 size={16} /> Editar
                           </button>
-                          <button className="danger-icon" onClick={() => handleDeleteExercise(item)} aria-label="Borrar ejercicio">
+                          <button
+                            className="danger-icon"
+                            onClick={() => handleDeleteExercise(item)}
+                            disabled={!isUnlocked}
+                            aria-label="Borrar ejercicio"
+                          >
                             <Trash2 size={17} />
                           </button>
                         </>
