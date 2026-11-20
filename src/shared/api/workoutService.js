@@ -10,20 +10,47 @@ async function currentUserId() {
   return data.user.id;
 }
 
+function assertValidSets(sets) {
+  if (!Array.isArray(sets) || sets.length === 0) {
+    throw new Error("Añade al menos una serie");
+  }
+
+  sets.forEach((set, index) => {
+    const weight = String(set.weight ?? "").trim();
+    const reps = String(set.reps ?? "").trim();
+
+    if (weight === "" || reps === "") {
+      throw new Error(`Serie ${index + 1}: completa el peso y las repeticiones o elimina la serie`);
+    }
+
+    const numericWeight = Number(weight);
+    const numericReps = Number(reps);
+
+    if (
+      !Number.isFinite(numericWeight) ||
+      numericWeight < 0 ||
+      !Number.isFinite(numericReps) ||
+      numericReps <= 0
+    ) {
+      throw new Error(`Serie ${index + 1}: peso y repeticiones deben ser números válidos`);
+    }
+  });
+}
+
 export async function saveWorkout({ workoutDate, exercises }) {
   if (!isIsoDate(workoutDate)) {
     throw new Error("La fecha del entrenamiento no es válida");
   }
 
-  const userId = await currentUserId();
+  const selectedExercises = exercises.filter((item) => item.exerciseId);
 
-  const validExercises = exercises.filter(
-    (item) => item.exerciseId && item.sets.some((set) => set.reps !== "" && set.weight !== "")
-  );
-
-  if (validExercises.length < 1) {
-    throw new Error("Rellena ejercicio, peso y repeticiones antes de guardar");
+  if (selectedExercises.length < 1) {
+    throw new Error("Selecciona un ejercicio y añade al menos una serie");
   }
+
+  selectedExercises.forEach((exercise) => assertValidSets(exercise.sets));
+
+  const userId = await currentUserId();
 
   let { data: workout, error: findWorkoutError } = await supabase
     .from("workouts")
@@ -54,8 +81,8 @@ export async function saveWorkout({ workoutDate, exercises }) {
 
   const maxOrder = Math.max(0, ...(existingExercises ?? []).map((item) => Number(item.exercise_order) || 0));
 
-  for (let i = 0; i < validExercises.length; i++) {
-    const exercise = validExercises[i];
+  for (let i = 0; i < selectedExercises.length; i++) {
+    const exercise = selectedExercises[i];
 
     const { data: workoutExercise, error: workoutExerciseError } = await supabase
       .from("workout_exercises")
@@ -69,14 +96,12 @@ export async function saveWorkout({ workoutDate, exercises }) {
 
     if (workoutExerciseError) throw workoutExerciseError;
 
-    const setsToInsert = exercise.sets
-      .filter((set) => set.reps !== "" && set.weight !== "")
-      .map((set, index) => ({
-        workout_exercise_id: workoutExercise.id,
-        set_number: index + 1,
-        reps: Number(set.reps),
-        weight: Number(set.weight),
-      }));
+    const setsToInsert = exercise.sets.map((set, index) => ({
+      workout_exercise_id: workoutExercise.id,
+      set_number: index + 1,
+      reps: Number(set.reps),
+      weight: Number(set.weight),
+    }));
 
     const { error: setsError } = await supabase.from("workout_sets").insert(setsToInsert);
     if (setsError) throw setsError;
@@ -108,14 +133,7 @@ export async function getWorkoutHistoryPage({ limit = 5, offset = 0 } = {}) {
 }
 
 export async function updateWorkoutExercise(workoutExerciseId, sets) {
-  for (const set of sets) {
-    const reps = Number(set.reps);
-    const weight = Number(set.weight);
-
-    if (!Number.isFinite(reps) || reps <= 0 || !Number.isFinite(weight) || weight < 0) {
-      throw new Error("Peso y repeticiones deben ser números válidos");
-    }
-  }
+  assertValidSets(sets);
 
   const { error } = await supabase
     .from("workout_sets")

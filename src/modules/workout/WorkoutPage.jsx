@@ -142,6 +142,7 @@ export default function WorkoutPage({ onGoToExercises }) {
           onRemove={resetCurrentExercise}
           singleMode
           onSaveAndSwitchExercise={handleSaveAndSwitchExercise}
+          onRequestSave={handleSaveWorkout}
           workoutDate={workoutDate}
           onWorkoutDateChange={setWorkoutDate}
           onGoToExercises={onGoToExercises}

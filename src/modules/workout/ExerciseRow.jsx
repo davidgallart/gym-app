@@ -44,6 +44,7 @@ export default function ExerciseRow({
   onRemove,
   singleMode = false,
   onSaveAndSwitchExercise,
+  onRequestSave,
   workoutDate,
   onWorkoutDateChange,
   onGoToExercises,
@@ -67,8 +68,10 @@ export default function ExerciseRow({
   const dateInputRef = useRef(null);
   const itemRef = useRef(item);
   const prefilledExerciseRef = useRef(null);
+  const savePromptedRef = useRef(false);
 
   const [confirmModal, setConfirmModal] = useState(null);
+  const [savePromptOpen, setSavePromptOpen] = useState(false);
 
   const muscleGroups = useMemo(() => getMuscleGroups(exercises), [exercises]);
 
@@ -89,6 +92,11 @@ export default function ExerciseRow({
   useEffect(() => {
     itemRef.current = item;
   });
+
+  useEffect(() => {
+    savePromptedRef.current = false;
+    setSavePromptOpen(false);
+  }, [item.exerciseId]);
 
   useEffect(() => {
     if (!item.exerciseId) {
@@ -179,19 +187,42 @@ export default function ExerciseRow({
     setRestDuration(getDefaultRestSeconds(selectedExercise?.muscle_group ?? ""));
   }, [item.exerciseId, exercises]);
 
-  function handleInputBlur(event, setIndex) {
+  function handleInputBlur(event, setIndex, field) {
     const set = item.sets[setIndex];
     if (!set) return;
-    if (set.weight === "" || set.reps === "") return;
 
-    const related = event.relatedTarget;
-    if (related && typeof related.closest === "function") {
-      if (related.closest(".rest-timer-bar") || related.closest(".exercise-header")) {
-        return;
-      }
+    const currentSet = { ...set, [field]: event.currentTarget.value };
+    if (String(currentSet.weight ?? "").trim() === "" || String(currentSet.reps ?? "").trim() === "") {
+      return;
     }
 
-   if (restEnabled && restRemaining === null) startRest(restDuration);
+    const related = event.relatedTarget;
+    const isInside = (selector) =>
+      related && typeof related.closest === "function" && related.closest(selector);
+
+    if (!isInside(".rest-timer-bar") && !isInside(".exercise-header") && restEnabled && restRemaining === null) {
+      startRest(restDuration);
+    }
+
+    const skipSavePrompt =
+      isInside(".sets-grid") ||
+      isInside(".selector-stack") ||
+      isInside(".exercise-header") ||
+      isInside(".rest-timer-bar") ||
+      isInside(".sticky-save-bar");
+
+    const allSetsComplete = item.sets.every((itemSet, itemIndex) => {
+      const effectiveSet = itemIndex === setIndex ? currentSet : itemSet;
+      return (
+        String(effectiveSet.weight ?? "").trim() !== "" &&
+        String(effectiveSet.reps ?? "").trim() !== ""
+      );
+    });
+
+    if (!skipSavePrompt && allSetsComplete && !savePromptedRef.current && onRequestSave) {
+      savePromptedRef.current = true;
+      setSavePromptOpen(true);
+    }
   }
 
   function changeRestDuration(delta) {
@@ -282,6 +313,7 @@ export default function ExerciseRow({
   }
 
   function addSet() {
+    savePromptedRef.current = false;
     onChange(index, {
       ...item,
       sets: [...item.sets, { weight: "", reps: "" }],
@@ -447,8 +479,8 @@ export default function ExerciseRow({
                 <Trash2 size={15} />
               </button>
             </div>
-            <input type="number" inputMode="decimal" placeholder="Kg" value={set.weight} onChange={(e) => updateSet(setIndex, "weight", e.target.value)} onBlur={(e) => handleInputBlur(e, setIndex)} />
-            <input type="number" inputMode="numeric" placeholder="Reps" value={set.reps} onChange={(e) => updateSet(setIndex, "reps", e.target.value)} onBlur={(e) => handleInputBlur(e, setIndex)} />
+            <input type="number" inputMode="decimal" placeholder="Kg" value={set.weight} onChange={(e) => updateSet(setIndex, "weight", e.target.value)} onBlur={(e) => handleInputBlur(e, setIndex, "weight")} />
+            <input type="number" inputMode="numeric" placeholder="Reps" value={set.reps} onChange={(e) => updateSet(setIndex, "reps", e.target.value)} onBlur={(e) => handleInputBlur(e, setIndex, "reps")} />
           </div>
         ))}
       </div>
@@ -457,6 +489,27 @@ export default function ExerciseRow({
         <Plus size={18} /> Añadir serie
       </button>
     </section>
+
+    {savePromptOpen && (
+      <ConfirmDialog
+        open={true}
+        onClose={() => setSavePromptOpen(false)}
+        title="¿Quieres guardar?"
+        message="Has completado todas las series de este ejercicio."
+        actions={[
+          {
+            label: "Guardar",
+            variant: "success",
+            onClick: onRequestSave,
+          },
+          {
+            label: "Ahora no",
+            variant: "danger",
+            onClick: () => {},
+          },
+        ]}
+      />
+    )}
 
     {confirmModal && (
       <ConfirmDialog
