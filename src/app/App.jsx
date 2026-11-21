@@ -17,8 +17,8 @@ const WeightPage = lazy(() => import("../modules/weight/WeightPage"));
 
 const tabs = [
   { id: "workout", label: "Entreno", icon: PlusCircle },
-  { id: "history", label: "Historial", icon: History },
   { id: "bodyWeight", label: "Peso", icon: Scale },
+  { id: "history", label: "Historial", icon: History },
   { id: "progress", label: "Progreso", icon: LineChart },
 ];
 

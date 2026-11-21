@@ -121,18 +121,16 @@
   transform: none;
 }
 
-/* Success - green for "Guardar" */
 .confirm-dialog-footer .btn-success {
-  background: linear-gradient(135deg, var(--dialog-success-from), var(--dialog-success-to));
-  color: var(--dialog-action-text);
-  box-shadow: var(--shadow-dialog-success);
+  background: var(--save-bg);
+  color: var(--white);
+  border: 1px solid var(--save-border);
 }
 
 .confirm-dialog-footer .btn-success:hover:not(:disabled) {
   box-shadow: var(--shadow-dialog-success-hover);
 }
 
-/* Danger - red for "Descartar" */
 .confirm-dialog-footer .btn-danger {
   background: linear-gradient(135deg, var(--red), var(--red-dark));
   color: var(--white);
@@ -143,7 +141,6 @@
   box-shadow: var(--shadow-dialog-danger-hover);
 }
 
-/* Warning - yellow/amber for "Cancelar" */
 .confirm-dialog-footer .btn-warning {
   background: linear-gradient(135deg, var(--warning), var(--warning-dark));
   color: var(--dialog-action-text);
