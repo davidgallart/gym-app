@@ -2,14 +2,17 @@ import { formatDisplayDate } from "./date";
 
 const MAX_SETS_PER_DAY = 3;
 const REP_BONUS_FACTOR = 40;
-const GROUP_DROP = 0.02;
+const THIRD_SET_BONUS = 0.02;
+const SECOND_POSITION_DROP = 0.005;
+const THIRD_POSITION_DROP = 0.025;
+const GROUP_DROP_STEP = 0.02;
 const SYNERGY_DROP = 0.01;
 const LEG_DROP = 0.01;
 const MIN_EXPECTED_RATIO = 0.6;
 const FLAT_BAND = 0.02;
 const STRONG_RECENT = 0.05;
 
-export const PERFORMANCE_INFO = "El Rendimiento ajustado es un índice por sesión y ejercicio que puntúa hasta 3 series según peso y repeticiones, las ajusta por la fatiga de ejercicios previos y muestra su evolución en la gráfica. No usa peso corporal, RPE, descanso ni calentamiento.";
+export const PERFORMANCE_INFO = "El Rendimiento ajustado puntúa cada serie según peso y repeticiones. La base son tus 2 mejores series (cada una cuenta la mitad) y, si haces una tercera, suma un bonus de hasta un 2%. Después ajusta el resultado por tu posición dentro del grupo muscular y por la fatiga de los ejercicios previos (sinergia y pierna). No usa peso corporal, RPE, descanso ni calentamiento.";
 
 
 const SYNERGY_GROUPS = {
@@ -22,16 +25,19 @@ const SYNERGY_GROUPS = {
 
 export function selectTopSets(sets, max = 3) {
   const ordered = [...sets].sort((a, b) => {
-    if (b.weight !== a.weight) return b.weight - a.weight;
-    if (b.reps !== a.reps) return b.reps - a.reps;
-    return b.set_number - a.set_number;
+    const diff = setScore(b) - setScore(a);
+    if (diff !== 0) return diff;
+    return (Number(a.set_number) || 0) - (Number(b.set_number) || 0);
   });
 
-  return ordered.slice(0, max).sort((a, b) => a.set_number - b.set_number);
+  return ordered
+    .slice(0, max)
+    .sort((a, b) => (Number(a.set_number) || 0) - (Number(b.set_number) || 0));
 }
 
 export function formatSet(set, index) {
-  return `S${index + 1}: ${set.weight}Kg x ${set.reps}`;
+  const number = Number(set?.set_number) || index + 1;
+  return `S${number}: ${set.weight}Kg x ${set.reps}`;
 }
 
 export function formatOrdinal(value) {
@@ -67,10 +73,17 @@ function isLegGroup(group) {
   return normalizeGroup(group).includes("pierna");
 }
 
+function groupPenalty(group) {
+  const position = Math.max(1, Number(group) || 1);
+  if (position <= 1) return 0;
+  if (position === 2) return SECOND_POSITION_DROP;
+  return THIRD_POSITION_DROP + GROUP_DROP_STEP * (position - 3);
+}
+
 function expectedRatio(position) {
   if (!position) return 1;
 
-  const groupPenalty = GROUP_DROP * Math.max(0, (position.group ?? 1) - 1);
+  const positionPenalty = groupPenalty(position.group);
   const current = normalizeGroup(position.groupName);
   const previousGroups = position.previousGroups ?? [];
   const synergyCount = previousGroups.filter((group) => {
@@ -86,7 +99,7 @@ function expectedRatio(position) {
     : LEG_DROP * previousGroups.filter((group) => isLegGroup(group)).length;
 
   const synergyPenalty = SYNERGY_DROP * synergyCount;
-  return Math.max(MIN_EXPECTED_RATIO, 1 - groupPenalty - synergyPenalty - legPenalty);
+  return Math.max(MIN_EXPECTED_RATIO, 1 - positionPenalty - synergyPenalty - legPenalty);
 }
 
 function dayScore(session) {
@@ -102,10 +115,12 @@ function dayScore(session) {
   const best = selectTopSets(validSets, MAX_SETS_PER_DAY);
   if (best.length === 0) return null;
 
-  const expected = expectedRatio(session?.position);
-  const adjusted = best.map((set) => setScore(set) / expected);
+  const scores = best.map(setScore).sort((a, b) => b - a);
+  const base = (scores[0] + (scores[1] ?? scores[0])) / 2;
+  const third = scores[2];
+  const bonus = third ? THIRD_SET_BONUS * base * (third / scores[1]) : 0;
 
-  return adjusted.reduce((sum, value) => sum + value, 0) / adjusted.length;
+  return (base + bonus) / expectedRatio(session?.position);
 }
 
 function getSlope(scores) {
